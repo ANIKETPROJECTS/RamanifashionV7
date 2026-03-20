@@ -1,0 +1,63 @@
+chunk-RPCDYKBN.js?v=e4455224:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-RS6LXJAT.js?v=e4455224:419 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ chunk-RS6LXJAT.js?v=e4455224:419
+chunk-RS6LXJAT.js?v=e4455224:433 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-RS6LXJAT.js?v=e4455224:433
+api/cart:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+api/cart:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+queryClient.ts:26  POST https://1e9a911f-dbc3-4708-8b5e-ad8f18c263ad-00-gi5uyqyvhs4p.picard.replit.dev/api/cart 500 (Internal Server Error)
+apiRequest @ queryClient.ts:26
+mutationFn @ ProductCard.tsx:75
+fn @ @tanstack_react-query.js?v=e4455224:2010
+run @ @tanstack_react-query.js?v=e4455224:800
+start @ @tanstack_react-query.js?v=e4455224:843
+execute @ @tanstack_react-query.js?v=e4455224:2051
+await in execute
+mutate @ @tanstack_react-query.js?v=e4455224:2390
+(anonymous) @ @tanstack_react-query.js?v=e4455224:3580
+handleAddToCart @ ProductCard.tsx:139
+callCallback2 @ chunk-RPCDYKBN.js?v=e4455224:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=e4455224:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=e4455224:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=e4455224:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=e4455224:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=e4455224:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=e4455224:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=e4455224:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=e4455224:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=e4455224:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=e4455224:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=e4455224:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=e4455224:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=e4455224:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=e4455224:5449
+queryClient.ts:26  POST https://1e9a911f-dbc3-4708-8b5e-ad8f18c263ad-00-gi5uyqyvhs4p.picard.replit.dev/api/cart 500 (Internal Server Error)
+apiRequest @ queryClient.ts:26
+mutationFn @ ProductCard.tsx:111
+fn @ @tanstack_react-query.js?v=e4455224:2010
+run @ @tanstack_react-query.js?v=e4455224:800
+start @ @tanstack_react-query.js?v=e4455224:843
+execute @ @tanstack_react-query.js?v=e4455224:2051
+await in execute
+mutate @ @tanstack_react-query.js?v=e4455224:2390
+(anonymous) @ @tanstack_react-query.js?v=e4455224:3580
+handleBuyNow @ ProductCard.tsx:158
+callCallback2 @ chunk-RPCDYKBN.js?v=e4455224:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=e4455224:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=e4455224:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=e4455224:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=e4455224:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=e4455224:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=e4455224:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=e4455224:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=e4455224:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=e4455224:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=e4455224:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=e4455224:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=e4455224:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=e4455224:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=e4455224:5449

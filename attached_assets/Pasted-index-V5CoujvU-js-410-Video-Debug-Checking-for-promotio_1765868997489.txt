@@ -1,0 +1,76 @@
+index-V5CoujvU.js:410 [Video Debug] Checking for promotional video at /media/promotional-video.mp4
+index-V5CoujvU.js:410 [Video Debug] HEAD request response: Object
+index-V5CoujvU.js:410 [Video Debug] Video found, using local video URL
+index-V5CoujvU.js:410 [Video Debug] Video load started for: /media/promotional-video.mp4
+index-V5CoujvU.js:410 [Video Debug] Source error: t {_reactName: 'onError', _targetInst: null, type: 'error', nativeEvent: Event, target: source, …}
+onError @ index-V5CoujvU.js:410
+jW @ index-V5CoujvU.js:37
+NW @ index-V5CoujvU.js:37
+PW @ index-V5CoujvU.js:37
+IA @ index-V5CoujvU.js:37
+U$ @ index-V5CoujvU.js:37
+(anonymous) @ index-V5CoujvU.js:37
+ON @ index-V5CoujvU.js:40
+h$ @ index-V5CoujvU.js:37
+Ib @ index-V5CoujvU.js:37
+iN @ index-V5CoujvU.js:37
+index-V5CoujvU.js:410 [Video Debug] Video element error: t {_reactName: 'onError', _targetInst: null, type: 'error', nativeEvent: Event, target: source, …}
+onError @ index-V5CoujvU.js:410
+jW @ index-V5CoujvU.js:37
+NW @ index-V5CoujvU.js:37
+PW @ index-V5CoujvU.js:37
+IA @ index-V5CoujvU.js:37
+U$ @ index-V5CoujvU.js:37
+(anonymous) @ index-V5CoujvU.js:37
+ON @ index-V5CoujvU.js:40
+h$ @ index-V5CoujvU.js:37
+Ib @ index-V5CoujvU.js:37
+iN @ index-V5CoujvU.js:37
+index-V5CoujvU.js:410 [Video Debug] Video src: /media/promotional-video.mp4
+onError @ index-V5CoujvU.js:410
+jW @ index-V5CoujvU.js:37
+NW @ index-V5CoujvU.js:37
+PW @ index-V5CoujvU.js:37
+IA @ index-V5CoujvU.js:37
+U$ @ index-V5CoujvU.js:37
+(anonymous) @ index-V5CoujvU.js:37
+ON @ index-V5CoujvU.js:40
+h$ @ index-V5CoujvU.js:37
+Ib @ index-V5CoujvU.js:37
+iN @ index-V5CoujvU.js:37
+index-V5CoujvU.js:410 [Video Debug] Video networkState: undefined
+onError @ index-V5CoujvU.js:410
+jW @ index-V5CoujvU.js:37
+NW @ index-V5CoujvU.js:37
+PW @ index-V5CoujvU.js:37
+IA @ index-V5CoujvU.js:37
+U$ @ index-V5CoujvU.js:37
+(anonymous) @ index-V5CoujvU.js:37
+ON @ index-V5CoujvU.js:40
+h$ @ index-V5CoujvU.js:37
+Ib @ index-V5CoujvU.js:37
+iN @ index-V5CoujvU.js:37
+index-V5CoujvU.js:410 [Video Debug] Video error code: undefined
+onError @ index-V5CoujvU.js:410
+jW @ index-V5CoujvU.js:37
+NW @ index-V5CoujvU.js:37
+PW @ index-V5CoujvU.js:37
+IA @ index-V5CoujvU.js:37
+U$ @ index-V5CoujvU.js:37
+(anonymous) @ index-V5CoujvU.js:37
+ON @ index-V5CoujvU.js:40
+h$ @ index-V5CoujvU.js:37
+Ib @ index-V5CoujvU.js:37
+iN @ index-V5CoujvU.js:37
+index-V5CoujvU.js:410 [Video Debug] Video error message: undefined
+onError @ index-V5CoujvU.js:410
+jW @ index-V5CoujvU.js:37
+NW @ index-V5CoujvU.js:37
+PW @ index-V5CoujvU.js:37
+IA @ index-V5CoujvU.js:37
+U$ @ index-V5CoujvU.js:37
+(anonymous) @ index-V5CoujvU.js:37
+ON @ index-V5CoujvU.js:40
+h$ @ index-V5CoujvU.js:37
+Ib @ index-V5CoujvU.js:37
+iN @ index-V5CoujvU.js:37

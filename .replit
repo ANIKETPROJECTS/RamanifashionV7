@@ -1,0 +1,66 @@
+modules = ["nodejs-20", "web", "bash"]
+run = "npm run dev"
+hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+
+[nix]
+channel = "stable-25_05"
+
+[deployment]
+deploymentTarget = "autoscale"
+build = ["npm", "run", "build"]
+run = ["node", "./dist/index.cjs"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[env]
+PORT = "5000"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+[agent]
+expertMode = true
+
+[userenv]
+
+[userenv.shared]
+PHONEPE_MODE = "PRODUCTION"
+WHATSAPP_PHONE_NUMBER_ID = "919970127778"
+PHONEPE_CLIENT_ID = "M22QN7SRPWWQ4_2511161203"
+PHONEPE_MERCHANT_ID = "M22QN7SRPWWQ4"
+PHONEPE_SALT_INDEX = "5b5b1002-099f-4ae7-abda-a2507503a219"
+PHONEPE_SALT_KEY = "1"
+SHIPROCKET_API_EMAIL = "raneaniket23@gmail.com"
+NODE_ENV = "development"
+HOST_URL = "https://ramanifashion.in"
+MONGODB_URI = "mongodb+srv://ramanifashion2026_db_user:Fvgh6aJF8YK6R9rQ@ramanifashion.tknlkyl.mongodb.net/?appName=ramanifashion"
+WHATSAPP_API_KEY = "7RlFwj57xE6wHngTfSmNHA"
+PHONEPE_CLIENT_SECRET = "NGFiNzVkZGYtNjhjYi00OTFjLWI1MWMtMGNkM2U5ZGI4NWJj"
+SHIPROCKET_API_PASSWORD = "!ExeJ2E&MyR4sUbK"
+PORT = "5000"
+CLOUDINARY_CLOUD_NAME = "dfkm00gal"
+CLOUDINARY_API_KEY = "222783755998643"
+CLOUDINARY_API_SECRET = "5hD1xHyXcJmWmvinbRPFACkS0w8"

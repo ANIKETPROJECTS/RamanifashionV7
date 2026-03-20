@@ -1,0 +1,447 @@
+Currently my application for customer otp is using test otp as 123456 but i want to use actual otp service for that take the following credentails and template that will send otp to watsapp.
+
+i am using a platform called https://superfast.akst.in/
+
+WHATSAPP_API_KEY = 7RlFwj57xE6wHngTfSmNHA
+WHATSAPP_PHONE_NUMBER_ID = 919970127778
+
+{
+"messaging_product": "whatsapp",
+"recipient_type": "individual",
+"to": "{{Recipient-Phone-Number}}",
+"type": "template",
+"template": {
+"name": "otpforcustomer",
+"language": {
+"code": "en"
+},
+"components": [
+{
+"type": "body",
+"parameters": [
+{
+"type": "text",
+"text": "{{Copy Code}}"
+}
+]
+},
+{
+"type": "button",
+"parameters": [
+{
+"type": "text",
+"text": "{Copy Code}"
+}
+],
+"sub_type": "url",
+"index": "0"
+}
+]
+}
+}
+
+Also following is the documentation for that website endpoint urls.
+:-
+
+Public
+ENVIRONMENT
+No Environment
+LAYOUT
+Double Column
+LANGUAGE
+cURL - cURL
+Whatsapp Cloud API
+Introduction
+Overview
+Authentication
+API Specification
+Features supported by this API
+API End Point
+Request headers
+Supported Content-Types
+Media
+Template
+Webhooks
+Channel
+Status codes and descriptions
+Get Balance
+Get Message Status
+Conversational Message
+Template Message
+Whatsapp Cloud API
+Authentication and API Versioning
+API Key
+All API requests must include an API key for authentication. The API key is a unique identifier provided to you upon registering for access to the API.
+
+API Versioning
+The API version must also be specified in each request to ensure compatibility between your application and the API. This ensures that changes in future versions do not break existing integrations.
+
+Current Version = v1.0
+
+AUTHORIZATION
+Bearer Token
+Token
+<token>
+
+Overview
+AUTHORIZATION
+Bearer Token
+This folder is using Bearer Token from collectionWhatsapp Cloud API
+Authentication
+API supports two types of authentication:
+
+API key
+AUTHORIZATION
+Bearer Token
+This folder is using Bearer Token from collectionWhatsapp Cloud API
+GET
+Get all templates
+{{api-domain-url}}/api/v1.0/templates
+AUTHORIZATION
+Bearer Token
+Token
+{{api_key}}
+
+Example Request
+Successful Response
+curl
+curl --location -g '{{api-domain-url}}/api/v1.0/templates' \
+--header 'Authorization: Bearer {{api_key}}'
+200 OK
+Example Response
+Body
+Headers (1)
+View More
+json
+{
+    "Sno": "01",
+    "CreatedAt": "2024-09-04 16:39:14",
+    "ModifiedAt": "2024-09-04 16:39:19",
+    "WabaId": 111111111111111,
+    "TemplateNamespaceId": "",
+    "TemplateName": "authentication_template",
+    "Language": "en",
+    "TemplateType": "MEDIA_TEMPLATE",
+    "MediaType": "",
+    "TemplatePlaceHolderCount": 1,
+    "Category": "AUTHENTICATION",
+    "FbTemplateId": 1234567896584152,
+    "TemplateCreateStatus": "APPROVED",
+    "TemplateStatusReason": "NONE",
+    "AllowCategoryChange": "false",
+    "Components": [
+        {
+            "Type": "BODY"
+        },
+        {
+            "Type": "BUTTONS",
+            "Buttons": [
+                {
+                    "type": "OTP",
+                    "text": "Copy code"
+                }
+            ],
+            "ButtonsType": "OTP"
+        }
+    ]
+},
+{
+    "Sno": "02",
+    "CreatedAt": "2024-08-20 15:30:54",
+    "ModifiedAt": "2024-08-20 16:13:42",
+    "WabaId": 111111111111111,
+    "TemplateNamespaceId": "",
+    "TemplateName": "order_template",
+    "Language": "en_US",
+    "TemplateType": "MEDIA_TEMPLATE",
+    "MediaType": "",
+    "TemplatePlaceHolderCount": 1,
+    "Category": "MARKETING",
+    "FbTemplateId": 1234567896584153,
+    "TemplateCreateStatus": "APPROVED",
+    "TemplateStatusReason": "NONE",
+    "AllowCategoryChange": "",
+    "Components": [
+        {
+            "Type": "HEADER",
+            "Format": "TEXT",
+            "Text": "Forget something {{1}}?",
+            "Example": {
+                "header_text": [
+                    "Pablo"
+                ]
+            }
+        },
+        {
+            "Type": "BODY",
+            "Text": "Looks like you left some items in your cart! Use code {{1}} and you can get 10% off of all of them!",
+            "Example": {
+                "BodyText": [
+                    [
+                        "10OFF"
+                    ]
+                ]
+            }
+        },
+        {
+            "Type": "BUTTONS",
+            "Buttons": [
+                {
+                    "type": "MPM",
+                    "text": "View items"
+                }
+            ],
+            "ButtonsType": "cta",
+            "ButtonsAttributes": {
+                "Actions": [
+                    {
+                        "type": "MPM",
+                        "index": "0",
+                        "label": "View items"
+                    }
+                ]
+            }
+        }
+    ]
+}
+GET
+get all template By Channel
+{{api-domain-url}}/api/v1.0/channel-templates/{{channel-number}}
+AUTHORIZATION
+Bearer Token
+Token
+{{api_key}}
+
+Example Request
+Successful Response
+curl
+curl --location -g '{{api-domain-url}}/api/v1.0/channel-templates/{{channel-number}}' \
+--header 'Authorization: Bearer {{api_key}}'
+200 OK
+Example Response
+Body
+Headers (1)
+View More
+json
+{
+    "Sno": "01",
+    "CreatedAt": "2024-09-04 16:39:14",
+    "ModifiedAt": "2024-09-04 16:39:19",
+    "WabaId": 111111111111111,
+    "TemplateNamespaceId": "",
+    "TemplateName": "authentication_template",
+    "Language": "en",
+    "TemplateType": "MEDIA_TEMPLATE",
+    "MediaType": "",
+    "TemplatePlaceHolderCount": 1,
+    "Category": "AUTHENTICATION",
+    "FbTemplateId": 1234567896584152,
+    "TemplateCreateStatus": "APPROVED",
+    "TemplateStatusReason": "NONE",
+    "AllowCategoryChange": "false",
+    "Components": [
+        {
+            "Type": "BODY"
+        },
+        {
+            "Type": "BUTTONS",
+            "Buttons": [
+                {
+                    "type": "OTP",
+                    "text": "Copy code"
+                }
+            ],
+            "ButtonsType": "OTP"
+        }
+    ]
+},
+{
+    "Sno": "02",
+    "CreatedAt": "2024-08-20 15:30:54",
+    "ModifiedAt": "2024-08-20 16:13:42",
+    "WabaId": 111111111111111,
+    "TemplateNamespaceId": "",
+    "TemplateName": "order_template",
+    "Language": "en_US",
+    "TemplateType": "MEDIA_TEMPLATE",
+    "MediaType": "",
+    "TemplatePlaceHolderCount": 1,
+    "Category": "MARKETING",
+    "FbTemplateId": 1234567896584153,
+    "TemplateCreateStatus": "APPROVED",
+    "TemplateStatusReason": "NONE",
+    "AllowCategoryChange": "",
+    "Components": [
+        {
+            "Type": "HEADER",
+            "Format": "TEXT",
+            "Text": "Forget something {{1}}?",
+            "Example": {
+                "header_text": [
+                    "Pablo"
+                ]
+            }
+        },
+        {
+            "Type": "BODY",
+            "Text": "Looks like you left some items in your cart! Use code {{1}} and you can get 10% off of all of them!",
+            "Example": {
+                "BodyText": [
+                    [
+                        "10OFF"
+                    ]
+                ]
+            }
+        },
+        {
+            "Type": "BUTTONS",
+            "Buttons": [
+                {
+                    "type": "MPM",
+                    "text": "View items"
+                }
+            ],
+            "ButtonsType": "cta",
+            "ButtonsAttributes": {
+                "Actions": [
+                    {
+                        "type": "MPM",
+                        "index": "0",
+                        "label": "View items"
+                    }
+                ]
+            }
+        }
+    ]
+}
+GET
+Get template by ID
+{{api-domain-url}}/api/v1.0/templates/<TEMPLATE_ID>
+Gets information about the authenticated user.
+
+AUTHORIZATION
+Bearer Token
+Token
+{{api_key}}
+
+Example Request
+Successful Response
+curl
+curl --location -g '{{api-domain-url}}/api/v1.0/templates/<TEMPLATE_ID>' \
+--header 'Authorization: Bearer {{api_key}}'
+200 OK
+Example Response
+Body
+Headers (1)
+View More
+json
+{
+  "Sno": "01",
+  "CreatedAt": "2024-09-04 16:39:14",
+  "ModifiedAt": "2024-09-04 16:39:19",
+  "WabaId": 111111111111111,
+  "TemplateNamespaceId": "",
+  "TemplateName": "test_template",
+  "Language": "en",
+  "TemplateType": "MEDIA_TEMPLATE",
+  "MediaType": "",
+  "TemplatePlaceHolderCount": 1,
+  "Category": "AUTHENTICATION",
+  "FbTemplateId": 1149848612773349,
+  "TemplateCreateStatus": "APPROVED",
+  "TemplateStatusReason": "NONE",
+  "AllowCategoryChange": "false",
+  "Components": [
+    {
+      "Type": "BODY"
+    },
+    {
+      "Type": "BUTTONS",
+      "Buttons": [
+        {
+          "type": "OTP",
+          "text": "Copy code"
+        }
+      ],
+      "ButtonsType": "OTP"
+    }
+  ]
+}
+GET
+Get template by Name
+{{api-domain-url}}/api/v1.0/templates/<TEMPLATE_NAME>
+Gets information about the authenticated user.
+
+AUTHORIZATION
+Bearer Token
+Token
+{{api_key}}
+
+Example Request
+Successful Response
+curl
+curl --location -g '{{api-domain-url}}/api/v1.0/templates/<TEMPLATE_NAME>' \
+--header 'Authorization: Bearer {{api_key}}'
+200 OK
+Example Response
+Body
+Headers (1)
+View More
+json
+{
+  "Sno": "01",
+  "CreatedAt": "2024-09-04 16:39:14",
+  "ModifiedAt": "2024-09-04 16:39:19",
+  "WabaId": 111111111111111,
+  "TemplateNamespaceId": "",
+  "TemplateName": "test_template",
+  "Language": "en",
+  "TemplateType": "MEDIA_TEMPLATE",
+  "MediaType": "",
+  "TemplatePlaceHolderCount": 1,
+  "Category": "AUTHENTICATION",
+  "FbTemplateId": 1149848612773349,
+  "TemplateCreateStatus": "APPROVED",
+  "TemplateStatusReason": "NONE",
+  "AllowCategoryChange": "false",
+  "Components": [
+    {
+      "Type": "BODY"
+    },
+    {
+      "Type": "BUTTONS",
+      "Buttons": [
+        {
+          "type": "OTP",
+          "text": "Copy code"
+        }
+      ],
+      "ButtonsType": "OTP"
+    }
+  ]
+}
+GET
+Sync All Template
+{{api-domain-url}}/api/v1.0/sync-templates
+Gets information about the authenticated user.
+
+AUTHORIZATION
+Bearer Token
+Token
+{{api_key}}
+
+Example Request
+Successful Response
+curl
+curl --location -g '{{api-domain-url}}/api/v1.0/sync-templates' \
+--header 'Authorization: Bearer {{api_key}}'
+200 OK
+Example Response
+Body
+Headers (1)
+json
+{
+  "success": true,
+  "statusDesc": "Template synchronized from the Meta successfully.",
+  "statusCode": 0
+}

@@ -1,0 +1,264 @@
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Heart, ShoppingBag, Star, CreditCard } from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { localStorageService } from "@/lib/localStorage";
+import { useAuthUI } from "@/contexts/AuthUIContext";
+
+const prefetchProduct = async (productId: string) => {
+  await queryClient.prefetchQuery({
+    queryKey: ["/api/products", productId],
+    queryFn: async () => {
+      const response = await fetch(`/api/products/${productId}`);
+      if (!response.ok) throw new Error("Failed to fetch product");
+      return response.json();
+    },
+  });
+};
+
+interface ProductCardProps {
+  id: string;
+  baseProductId?: string;
+  displayColor?: string;
+  name: string;
+  image: string;
+  secondaryImage?: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  rating?: number;
+  reviewCount?: number;
+  isNew?: boolean;
+  isBestseller?: boolean;
+  context?: 'new-arrivals' | 'trending' | 'sale' | 'products';
+  shortDescription?: string;
+  description?: string;
+  onAddToCart?: () => void;
+  onAddToWishlist?: () => void;
+  onBuyNow?: () => void;
+  onClick?: () => void;
+}
+
+export default function ProductCard({
+  id,
+  baseProductId,
+  displayColor,
+  name,
+  image,
+  secondaryImage,
+  price,
+  originalPrice,
+  discount,
+  rating = 0,
+  reviewCount = 0,
+  isNew,
+  isBestseller,
+  context,
+  shortDescription,
+  description,
+  onAddToCart,
+  onAddToWishlist,
+  onBuyNow,
+  onClick,
+}: ProductCardProps) {
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [currentImage, setCurrentImage] = useState(image);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const { openLogin } = useAuthUI();
+
+  // Extract short description from full description
+  const displayShortDescription = shortDescription || 
+    (description ? description.split(/[.\n]/).find(s => s.trim())?.trim()?.substring(0, 60) : undefined);
+  
+  // Use the actual product ID (including variant info) for navigation
+  const productDetailId = id;
+
+  const addToCartMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("/api/cart", "POST", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      toast({ title: "Added to cart successfully!" });
+    },
+    onError: () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        localStorageService.addToCart(cartProductId, 1, displayColor);
+        queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+        toast({ title: "Added to cart successfully!" });
+      } else {
+        toast({ title: "Failed to add to cart", variant: "destructive" });
+      }
+    },
+  });
+
+  const addToWishlistMutation = useMutation({
+    mutationFn: (productId: string) => apiRequest(`/api/wishlist/${productId}`, "POST"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+      toast({ title: "Added to wishlist!" });
+    },
+    onError: () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        localStorageService.addToWishlist(cartProductId);
+        queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+        toast({ title: "Added to wishlist!" });
+      } else {
+        toast({ title: "Failed to add to wishlist", variant: "destructive" });
+      }
+    },
+  });
+
+  const buyNowMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("/api/cart", "POST", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      setLocation("/checkout");
+    },
+    onError: () => {
+      toast({ title: "Failed to proceed with Buy Now", variant: "destructive" });
+    },
+  });
+
+  // Use the base product ID (without variant suffix) for cart/wishlist operations
+  // The id may contain _variant_X suffix which is not a valid MongoDB ObjectId
+  const cartProductId = baseProductId || id.split('_variant_')[0];
+  
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+    if (onAddToWishlist) {
+      onAddToWishlist();
+    } else {
+      addToWishlistMutation.mutate(cartProductId);
+    }
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onAddToCart) {
+      onAddToCart();
+    } else {
+      addToCartMutation.mutate({ 
+        productId: cartProductId, 
+        quantity: 1,
+        selectedColor: displayColor 
+      });
+    }
+  };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onBuyNow) {
+      onBuyNow();
+    } else {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast({ title: "Please login to proceed with Buy Now", variant: "destructive" });
+        openLogin();
+        return;
+      }
+      buyNowMutation.mutate({ 
+        productId: cartProductId, 
+        quantity: 1,
+        selectedColor: displayColor 
+      });
+    }
+  };
+
+  const testId = baseProductId 
+    ? `card-product-${baseProductId}-variant-${id.split('_variant_')[1] || '0'}`
+    : `card-product-${id}`;
+  
+  return (
+    <Card 
+      className="overflow-hidden cursor-pointer hover-elevate active-elevate-2 group flex flex-col h-full"
+      onClick={() => onClick ? onClick() : setLocation(`/product/${productDetailId}`)}
+      onMouseEnter={() => prefetchProduct(productDetailId)}
+      data-testid={testId}
+    >
+      <div className="relative aspect-square overflow-hidden flex-shrink-0">
+        <img
+          src={currentImage || "/default-saree.jpg"}
+          alt={name}
+          className="w-full h-full object-cover"
+          onMouseEnter={() => secondaryImage && setCurrentImage(secondaryImage)}
+          onMouseLeave={() => setCurrentImage(image)}
+          onError={(e) => { e.currentTarget.src = '/default-saree.jpg'; }}
+        />
+        
+        <div className={`absolute top-2 right-2 z-20 rounded-full p-1.5 flex items-center justify-center ${isWishlisted ? 'bg-destructive' : 'bg-white'}`}>
+          <button
+            onClick={handleWishlist}
+            data-testid={`button-wishlist-${id}`}
+            className="focus:outline-none"
+          >
+            <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-white text-white' : 'text-black'}`} />
+          </button>
+        </div>
+
+        {isBestseller && (
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            <Badge className="bg-accent text-accent-foreground" data-testid={`badge-bestseller-${id}`}>
+              Bestseller
+            </Badge>
+          </div>
+        )}
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-2">
+          <Button 
+            className="w-full bg-primary hover:bg-primary text-primary-foreground"
+            onClick={handleAddToCart}
+            data-testid={`button-add-to-cart-${id}`}
+          >
+            <ShoppingBag className="h-4 w-4 mr-2" />
+            Add to Cart
+          </Button>
+          <Button 
+            className="w-full"
+            variant="secondary"
+            onClick={handleBuyNow}
+            data-testid={`button-buy-now-${id}`}
+          >
+            <CreditCard className="h-4 w-4 mr-2" />
+            Buy Now
+          </Button>
+        </div>
+      </div>
+
+      <CardContent className="p-4 flex flex-col flex-1">
+        <h3 className="font-medium text-sm line-clamp-2 mb-1" data-testid={`text-product-name-${id}`}>
+          {name}
+        </h3>
+
+        <p className="text-xs text-muted-foreground line-clamp-1 mb-2 min-h-[1rem]" data-testid={`text-short-description-${id}`}>
+          {displayShortDescription || ""}
+        </p>
+
+        <div className="flex items-center gap-2 flex-wrap mt-auto">
+          <span className="text-lg font-bold text-black" data-testid={`text-price-${id}`}>
+            ₹{price.toLocaleString()}
+          </span>
+          {originalPrice && (
+            <>
+              <span className="text-sm text-black line-through" data-testid={`text-original-price-${id}`}>
+                ₹{originalPrice.toLocaleString()}
+              </span>
+              {discount !== undefined && discount > 0 && (
+                <span className="text-xs text-black font-medium" data-testid={`text-discount-${id}`}>
+                  {discount}% off
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

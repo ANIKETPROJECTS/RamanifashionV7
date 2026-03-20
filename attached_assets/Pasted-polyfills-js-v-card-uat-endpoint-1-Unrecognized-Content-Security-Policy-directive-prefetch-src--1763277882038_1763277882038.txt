@@ -1,0 +1,94 @@
+polyfills.js?v=card_uat_endpoint:1 Unrecognized Content-Security-Policy directive 'prefetch-src'.
+(anonymous) @ polyfills.js?v=card_uat_endpoint:1
+polyfills.js?v=card_uat_endpoint:1 Unrecognized Content-Security-Policy directive 'prefetch-src'.
+(anonymous) @ polyfills.js?v=card_uat_endpoint:1
+polyfills.js?v=card_uat_endpoint:1 Unrecognized Content-Security-Policy directive 'prefetch-src'.
+(anonymous) @ polyfills.js?v=card_uat_endpoint:1
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/ui/v2/login/details' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-sandbox/checkout/ui/v2/login/details:1  Failed to load resource: net::ERR_FAILED
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch:1  Failed to load resource: net::ERR_FAILED
+bundle.6036b.js:1 failed to send events TypeError: Failed to fetch
+    at t.<anonymous> (bundle.6036b.js:1:45491)
+    at Generator.next (<anonymous>)
+    at a (bundle.6036b.js:1:43982)
+    at i (bundle.6036b.js:1:44166)
+    at bundle.6036b.js:1:44244
+    at new Promise (<anonymous>)
+    at t.<anonymous> (bundle.6036b.js:1:44125)
+    at t.<anonymous> (bundle.6036b.js:1:46387)
+    at t.<anonymous> (bundle.6036b.js:1:46512)
+    at Generator.next (<anonymous>)
+(anonymous) @ bundle.6036b.js:1
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/ui/v2/login/details' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-sandbox/checkout/ui/v2/login/details:1  Failed to load resource: net::ERR_FAILED
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/ui/v2/login/details' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-sandbox/checkout/ui/v2/login/details:1  Failed to load resource: net::ERR_FAILED
+bundle.6036b.js:1 Error fetching user details: TypeError: Failed to fetch
+    at t.<anonymous> (bundle.6036b.js:1:45491)
+    at Generator.next (<anonymous>)
+    at a (bundle.6036b.js:1:43982)
+    at i (bundle.6036b.js:1:44166)
+    at bundle.6036b.js:1:44244
+    at new Promise (<anonymous>)
+    at t.<anonymous> (bundle.6036b.js:1:44125)
+    at t.<anonymous> (bundle.6036b.js:1:46387)
+    at t.<anonymous> (bundle.6036b.js:1:46335)
+    at Generator.next (<anonymous>)
+(anonymous) @ bundle.6036b.js:1
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch:1  Failed to load resource: net::ERR_FAILED
+bundle.6036b.js:1 failed to send events TypeError: Failed to fetch
+    at t.<anonymous> (bundle.6036b.js:1:45491)
+    at Generator.next (<anonymous>)
+    at a (bundle.6036b.js:1:43982)
+    at i (bundle.6036b.js:1:44166)
+    at bundle.6036b.js:1:44244
+    at new Promise (<anonymous>)
+    at t.<anonymous> (bundle.6036b.js:1:44125)
+    at t.<anonymous> (bundle.6036b.js:1:46387)
+    at t.<anonymous> (bundle.6036b.js:1:46512)
+    at Generator.next (<anonymous>)
+(anonymous) @ bundle.6036b.js:1
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch:1  Failed to load resource: net::ERR_FAILED
+bundle.6036b.js:1 failed to send events TypeError: Failed to fetch
+    at t.<anonymous> (bundle.6036b.js:1:45491)
+    at Generator.next (<anonymous>)
+    at a (bundle.6036b.js:1:43982)
+    at i (bundle.6036b.js:1:44166)
+    at bundle.6036b.js:1:44244
+    at new Promise (<anonymous>)
+    at t.<anonymous> (bundle.6036b.js:1:44125)
+    at t.<anonymous> (bundle.6036b.js:1:46387)
+    at t.<anonymous> (bundle.6036b.js:1:46512)
+    at Generator.next (<anonymous>)
+(anonymous) @ bundle.6036b.js:1
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch:1  Failed to load resource: net::ERR_FAILED
+bundle.6036b.js:1 failed to send events TypeError: Failed to fetch
+    at t.<anonymous> (bundle.6036b.js:1:45491)
+    at Generator.next (<anonymous>)
+    at a (bundle.6036b.js:1:43982)
+    at i (bundle.6036b.js:1:44166)
+    at bundle.6036b.js:1:44244
+    at new Promise (<anonymous>)
+    at t.<anonymous> (bundle.6036b.js:1:44125)
+    at t.<anonymous> (bundle.6036b.js:1:46387)
+    at t.<anonymous> (bundle.6036b.js:1:46512)
+    at Generator.next (<anonymous>)
+(anonymous) @ bundle.6036b.js:1
+uat_v3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NjMzMDEyMTY1NTksIm1lcmNoYW50S…:1 Access to fetch at 'https://api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch' from origin 'https://mercury-uat.phonepe.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api-preprod.phonepe.com/apis/pg-meta/client/v1/events/batch:1  Failed to load resource: net::ERR_FAILED
+bundle.6036b.js:1 failed to send events TypeError: Failed to fetch
+    at t.<anonymous> (bundle.6036b.js:1:45491)
+    at Generator.next (<anonymous>)
+    at a (bundle.6036b.js:1:43982)
+    at i (bundle.6036b.js:1:44166)
+    at bundle.6036b.js:1:44244
+    at new Promise (<anonymous>)
+    at t.<anonymous> (bundle.6036b.js:1:44125)
+    at t.<anonymous> (bundle.6036b.js:1:46387)
+    at t.<anonymous> (bundle.6036b.js:1:46512)
+    at Generator.next (<anonymous>)
+(anonymous) @ bundle.6036b.js:1

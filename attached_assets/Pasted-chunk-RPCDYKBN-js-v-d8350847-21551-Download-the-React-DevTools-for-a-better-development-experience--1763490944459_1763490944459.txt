@@ -1,0 +1,34 @@
+chunk-RPCDYKBN.js?v=d8350847:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/payment/phonepe/initiate:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+queryClient.ts:26  POST https://a2da6274-cad4-493a-9ebe-53e6a17cf908-00-3vj4je68ue261.worf.replit.dev/api/payment/phonepe/initiate 500 (Internal Server Error)
+apiRequest @ queryClient.ts:26
+mutationFn @ Checkout.tsx:83
+fn @ @tanstack_react-query.js?v=d8350847:1189
+run @ @tanstack_react-query.js?v=d8350847:494
+start @ @tanstack_react-query.js?v=d8350847:536
+execute @ @tanstack_react-query.js?v=d8350847:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=d8350847:2630
+(anonymous) @ @tanstack_react-query.js?v=d8350847:3295
+initiatePhonePePayment @ Checkout.tsx:99
+onSuccess @ Checkout.tsx:69
+execute @ @tanstack_react-query.js?v=d8350847:1233
+await in execute
+mutate @ @tanstack_react-query.js?v=d8350847:2630
+(anonymous) @ @tanstack_react-query.js?v=d8350847:3295
+handlePlaceOrder @ Checkout.tsx:163
+callCallback2 @ chunk-RPCDYKBN.js?v=d8350847:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=d8350847:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=d8350847:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=d8350847:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=d8350847:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=d8350847:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=d8350847:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=d8350847:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=d8350847:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=d8350847:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=d8350847:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=d8350847:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=d8350847:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=d8350847:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=d8350847:5449
