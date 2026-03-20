@@ -1135,6 +1135,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/orders", authenticateToken, async (req, res) => {
     try {
+      const { items } = req.body;
+
+      // Validate stock for each item before creating the order
+      if (Array.isArray(items) && items.length > 0) {
+        for (const item of items) {
+          const product = await Product.findById(item.productId).lean();
+          if (!product) {
+            return res.status(400).json({ error: `Product not found: ${item.productId}` });
+          }
+          const available = (product as any).stockQuantity ?? 0;
+          if (item.quantity > available) {
+            return res.status(400).json({
+              error: `Only ${available} unit(s) available for "${(product as any).name}". Please update your cart.`,
+              availableStock: available,
+              productName: (product as any).name,
+            });
+          }
+        }
+      }
+
       const orderNumber = 'RM' + Date.now();
       const order = new Order({
         userId: (req as any).user.userId,

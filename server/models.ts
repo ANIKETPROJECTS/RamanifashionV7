@@ -162,6 +162,7 @@ const orderSchema = new Schema({
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
     image: { type: String },
+    selectedColor: { type: String, default: null },
   }],
   shippingAddress: {
     fullName: String,

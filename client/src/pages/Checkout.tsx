@@ -73,8 +73,8 @@ export default function Checkout() {
         setLocation("/orders");
       }
     },
-    onError: () => {
-      toast({ title: "Please login to place order", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ title: error?.message || "Failed to place order. Please try again.", variant: "destructive" });
     },
   });
 
@@ -138,13 +138,23 @@ export default function Checkout() {
     if (!selectedAddr) return;
 
     const orderData = {
-      items: items.map((item: any) => ({
-        productId: item.productId._id,
-        name: item.productId.name,
-        price: item.productId.price,
-        quantity: item.quantity,
-        image: item.productId.displayImages?.[0] || item.productId.images?.[0],
-      })),
+      items: items.map((item: any) => {
+        const selectedColorVariant = item.selectedColor && item.productId?.colorVariants
+          ? item.productId.colorVariants.find((v: any) => v.color === item.selectedColor)
+          : null;
+        const image = selectedColorVariant?.images?.[0]
+          || item.productId?.displayImages?.[0]
+          || item.productId?.images?.[0]
+          || null;
+        return {
+          productId: item.productId._id,
+          name: item.productId.name,
+          price: item.productId.price,
+          quantity: item.quantity,
+          selectedColor: item.selectedColor || null,
+          image,
+        };
+      }),
       shippingAddress: {
         fullName: selectedAddr.fullName,
         phone: selectedAddr.phone,

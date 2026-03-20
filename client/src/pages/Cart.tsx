@@ -251,7 +251,7 @@ export default function Cart() {
                               quantity: item.quantity + 1,
                               selectedColor: item.selectedColor
                             })}
-                            disabled={updateQuantityMutation.isPending || item.quantity >= (product?.stockQuantity || 999)}
+                            disabled={updateQuantityMutation.isPending || item.quantity >= (product?.stockQuantity ?? 999)}
                             data-testid={`button-increase-${item.productId?._id}`}
                           >
                             +

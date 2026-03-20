@@ -70,13 +70,6 @@ interface Order {
   phonePeOrderId?: string;
   phonePePaymentState?: string;
   phonePePaymentDetails?: any;
-  shiprocketOrderId?: number;
-  shiprocketShipmentId?: number;
-  shiprocketAwbCode?: string;
-  shiprocketCourierId?: number;
-  shiprocketCourierName?: string;
-  shiprocketLabelUrl?: string;
-  shiprocketTrackingUrl?: string;
   rejectedBy?: string;
   rejectedAt?: string;
   rejectionReason?: string;
@@ -171,26 +164,16 @@ export default function OrderManagement() {
     }
   });
 
-  const sendToShiprocketMutation = useMutation({
-    mutationFn: (orderId: string) => {
-      console.log('\n📦 SENDING TO SHIPROCKET');
-      console.log('Order ID:', orderId);
-      console.log('Timestamp:', new Date().toISOString());
-      return apiRequest(`/api/admin/orders/${orderId}/send-to-shiprocket`, "POST");
-    },
-    onSuccess: (data) => {
-      console.log('✅ Order sent to Shiprocket!', data);
+  const markDeliveredMutation = useMutation({
+    mutationFn: ({ orderId, paymentReceived }: { orderId: string; paymentReceived?: boolean }) =>
+      apiRequest(`/api/admin/orders/${orderId}/deliver`, "POST", { paymentReceived: paymentReceived ?? false }),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/orders'] });
-      toast({ 
-        title: "Sent to Shiprocket!", 
-        description: "Order is now in Shiprocket processing." 
-      });
+      toast({ title: "Order marked as delivered!" });
       setDetailDialogOpen(false);
       setSelectedOrder(null);
     },
     onError: (error: any) => {
-      console.error('❌ Sending to Shiprocket failed:', error);
-      console.error('Error message:', error.message);
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   });
@@ -777,9 +760,12 @@ export default function OrderManagement() {
                   <div className="space-y-2">
                     {selectedOrder.items.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-3 p-3 bg-muted rounded-md">
-                        {item.image && (
-                          <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
-                        )}
+                        <img
+                          src={item.image || "/default-saree.jpg"}
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded flex-shrink-0"
+                          onError={(e) => { e.currentTarget.src = '/default-saree.jpg'; }}
+                        />
                         <div className="flex-1">
                           <div className="font-bold">{item.name}</div>
                           {item.description && (
@@ -895,44 +881,11 @@ export default function OrderManagement() {
                   </div>
                 )}
 
-                {selectedOrder.shiprocketOrderId && (
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                      <Truck className="h-4 w-4" />
-                      Shiprocket Shipping Information
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md space-y-1 text-sm">
-                      <div><strong>Shiprocket Order ID:</strong> {selectedOrder.shiprocketOrderId}</div>
-                      {selectedOrder.shiprocketShipmentId && (
-                        <div><strong>Shipment ID:</strong> {selectedOrder.shiprocketShipmentId}</div>
-                      )}
-                      {selectedOrder.shiprocketAwbCode && (
-                        <div><strong>AWB Code:</strong> {selectedOrder.shiprocketAwbCode}</div>
-                      )}
-                      {selectedOrder.shiprocketCourierName && (
-                        <div><strong>Courier:</strong> {selectedOrder.shiprocketCourierName}</div>
-                      )}
-                      {selectedOrder.shiprocketLabelUrl && (
-                        <div>
-                          <a 
-                            href={selectedOrder.shiprocketLabelUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            Download Shipping Label
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 {!selectedOrder.approved && (selectedOrder.orderStatus === 'pending' || selectedOrder.orderStatus === 'processing') && (
                   <div className="space-y-3 pt-4 border-t">
                     {selectedOrder.paymentMethod !== 'cod' && selectedOrder.paymentStatus !== 'paid' && (
                       <div className="text-sm text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950 p-3 rounded-md">
-                        ⚠️ Prepaid orders must have payment completed before approval
+                        ⚠️ This is a prepaid order. Payment has not been completed yet. Cannot reject a prepaid order.
                       </div>
                     )}
                     
@@ -946,26 +899,18 @@ export default function OrderManagement() {
                         <CheckCircle className="h-4 w-4 mr-2" />
                         {approveOrderMutation.isPending ? 'Approving...' : 'Approve'}
                       </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => sendToShiprocketMutation.mutate(selectedOrder._id)}
-                        disabled={sendToShiprocketMutation.isPending}
-                        className="flex-1 min-w-[160px]"
-                        data-testid="button-send-shiprocket"
-                      >
-                        <Truck className="h-4 w-4 mr-2" />
-                        {sendToShiprocketMutation.isPending ? 'Sending...' : 'Send to Ship Rocket'}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => setShowRejectionInput(!showRejectionInput)}
-                        disabled={rejectOrderMutation.isPending}
-                        className="flex-1 min-w-[120px]"
-                        data-testid="button-reject-order"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        {showRejectionInput ? 'Cancel' : 'Reject Order'}
-                      </Button>
+                      {selectedOrder.paymentMethod === 'cod' && (
+                        <Button
+                          variant="destructive"
+                          onClick={() => setShowRejectionInput(!showRejectionInput)}
+                          disabled={rejectOrderMutation.isPending}
+                          className="flex-1 min-w-[120px]"
+                          data-testid="button-reject-order"
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          {showRejectionInput ? 'Cancel' : 'Reject Order'}
+                        </Button>
+                      )}
                     </div>
 
                     {showRejectionInput && (
@@ -992,21 +937,34 @@ export default function OrderManagement() {
                   </div>
                 )}
 
-                {selectedOrder.approved && !selectedOrder.shiprocketOrderId && (selectedOrder.orderStatus === 'pending' || selectedOrder.orderStatus === 'approved') && (
+                {selectedOrder.approved && selectedOrder.orderStatus !== 'delivered' && selectedOrder.orderStatus !== 'cancelled' && (
                   <div className="space-y-3 pt-4 border-t">
-                    <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 p-3 rounded-md">
-                      Order is approved. You can now send it to a shipping partner.
+                    <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950 p-3 rounded-md">
+                      ✅ Order is approved. Mark it as delivered once the customer receives it.
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => sendToShiprocketMutation.mutate(selectedOrder._id)}
-                      disabled={sendToShiprocketMutation.isPending}
-                      className="w-full"
-                      data-testid="button-send-shiprocket-approved"
-                    >
-                      <Truck className="h-4 w-4 mr-2" />
-                      {sendToShiprocketMutation.isPending ? 'Sending...' : 'Send to Ship Rocket'}
-                    </Button>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        onClick={() => markDeliveredMutation.mutate({ orderId: selectedOrder._id, paymentReceived: false })}
+                        disabled={markDeliveredMutation.isPending}
+                        className="flex-1 min-w-[140px]"
+                        data-testid="button-mark-delivered"
+                      >
+                        <PackageCheck className="h-4 w-4 mr-2" />
+                        {markDeliveredMutation.isPending ? 'Updating...' : 'Delivery Completed'}
+                      </Button>
+                      {selectedOrder.paymentMethod === 'cod' && (
+                        <Button
+                          variant="outline"
+                          onClick={() => markDeliveredMutation.mutate({ orderId: selectedOrder._id, paymentReceived: true })}
+                          disabled={markDeliveredMutation.isPending}
+                          className="flex-1 min-w-[200px] border-green-600 text-green-700 hover:bg-green-50"
+                          data-testid="button-mark-delivered-payment-received"
+                        >
+                          <Banknote className="h-4 w-4 mr-2" />
+                          {markDeliveredMutation.isPending ? 'Updating...' : 'Delivered + Payment Received'}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
