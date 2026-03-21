@@ -1206,6 +1206,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await order.save();
 
+      // Deduct inventory immediately when order is placed
+      if (Array.isArray(items) && items.length > 0) {
+        for (const item of items) {
+          try {
+            const product = await Product.findById(item.productId);
+            if (product) {
+              const newQty = Math.max(0, ((product as any).stockQuantity || 0) - item.quantity);
+              (product as any).stockQuantity = newQty;
+              (product as any).inStock = newQty > 0;
+              (product as any).updatedAt = new Date();
+              await product.save();
+            }
+          } catch (invErr: any) {
+            console.error(`Failed to reduce inventory for product ${item.productId}:`, invErr.message);
+          }
+        }
+      }
+
       // Update customer profile with shipping address
       if (req.body.shippingAddress) {
         const { address, locality, city, state, pincode } = req.body.shippingAddress;
@@ -2695,22 +2713,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await order.save();
 
-      // Reduce inventory for each ordered item (Bug 7)
-      for (const item of order.items) {
-        try {
-          const product = await Product.findById(item.productId);
-          if (product) {
-            const newQty = Math.max(0, ((product as any).stockQuantity || 0) - item.quantity);
-            (product as any).stockQuantity = newQty;
-            (product as any).inStock = newQty > 0;
-            (product as any).updatedAt = new Date();
-            await product.save();
-          }
-        } catch (invErr: any) {
-          console.error(`Failed to reduce inventory for product ${item.productId}:`, invErr.message);
-        }
-      }
-
       console.log(`\n✅ Order ${order.orderNumber} approved (waiting for shipping partner)`);
       console.log('=== ORDER APPROVAL COMPLETED ===\n');
 
@@ -3047,6 +3049,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       order.updatedAt = new Date();
       
       await order.save();
+
+      // Restore inventory for each item since the order was rejected
+      for (const item of order.items) {
+        try {
+          const product = await Product.findById(item.productId);
+          if (product) {
+            const newQty = ((product as any).stockQuantity || 0) + item.quantity;
+            (product as any).stockQuantity = newQty;
+            (product as any).inStock = newQty > 0;
+            (product as any).updatedAt = new Date();
+            await product.save();
+          }
+        } catch (invErr: any) {
+          console.error(`Failed to restore inventory for product ${item.productId}:`, invErr.message);
+        }
+      }
 
       const populatedOrder = await Order.findById(order._id)
         .populate('userId', 'name email phone')
