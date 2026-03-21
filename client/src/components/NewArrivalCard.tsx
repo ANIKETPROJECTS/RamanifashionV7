@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Heart, ShoppingBag, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { localStorageService } from "@/lib/localStorage";
@@ -41,10 +41,30 @@ export default function NewArrivalCard({
 }: NewArrivalCardProps) {
   const [, setLocation] = useLocation();
   const [currentImage, setCurrentImage] = useState(image);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const { toast } = useToast();
 
   const cartProductId = baseProductId || id.split('_variant_')[0];
+  const token = localStorage.getItem("token");
+
+  const { data: wishlistData } = useQuery<any>({
+    queryKey: ["/api/wishlist"],
+    enabled: !!token,
+    retry: false,
+  });
+
+  const isInApiWishlist = !!wishlistData?.products?.some(
+    (item: any) => (item.productId?._id || item.productId) === cartProductId
+  );
+  const isInLocalWishlist = !token && localStorageService.isInWishlist(cartProductId, displayColor || null);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      setIsWishlisted(isInApiWishlist);
+    } else {
+      setIsWishlisted(isInLocalWishlist);
+    }
+  }, [isInApiWishlist, isInLocalWishlist, token]);
 
   const addToCartMutation = useMutation({
     mutationFn: (data: any) => apiRequest("/api/cart", "POST", data),

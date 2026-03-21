@@ -2,9 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, ShoppingBag, Star, CreditCard } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { localStorageService } from "@/lib/localStorage";
@@ -66,11 +66,33 @@ export default function ProductCard({
   onBuyNow,
   onClick,
 }: ProductCardProps) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [currentImage, setCurrentImage] = useState(image);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { openLogin } = useAuthUI();
+
+  const cartProductId = baseProductId || id.split('_variant_')[0];
+  const token = localStorage.getItem("token");
+
+  const { data: wishlistData } = useQuery<any>({
+    queryKey: ["/api/wishlist"],
+    enabled: !!token,
+    retry: false,
+  });
+
+  const isInApiWishlist = !!wishlistData?.products?.some(
+    (item: any) => (item.productId?._id || item.productId) === cartProductId
+  );
+  const isInLocalWishlist = !token && localStorageService.isInWishlist(cartProductId, displayColor || null);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      setIsWishlisted(isInApiWishlist);
+    } else {
+      setIsWishlisted(isInLocalWishlist);
+    }
+  }, [isInApiWishlist, isInLocalWishlist, token]);
 
   // Extract short description from full description
   const displayShortDescription = shortDescription || 
@@ -127,10 +149,6 @@ export default function ProductCard({
     },
   });
 
-  // Use the base product ID (without variant suffix) for cart/wishlist operations
-  // The id may contain _variant_X suffix which is not a valid MongoDB ObjectId
-  const cartProductId = baseProductId || id.split('_variant_')[0];
-  
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsWishlisted(!isWishlisted);
