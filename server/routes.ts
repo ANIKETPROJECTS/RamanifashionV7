@@ -2335,7 +2335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const wishlist: any = await Wishlist.findOne({ userId: customer._id })
             .populate({
               path: 'items.productId',
-              select: '_id name price images'
+              select: '_id name price images colorVariants'
             })
             .lean();
           

@@ -46,6 +46,7 @@ interface WishlistItem {
   name: string;
   price: number;
   images: string[];
+  colorVariants?: { color: string; images: string[] }[];
 }
 
 interface Customer {
@@ -659,23 +660,29 @@ export default function CustomerManagement() {
                 <CardContent>
                   {selectedCustomer.wishlistItems && selectedCustomer.wishlistItems.length > 0 ? (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {selectedCustomer.wishlistItems.map((item) => (
-                        <div key={item._id} className="border rounded-md p-3 space-y-2">
-                          {item?.images && Array.isArray(item.images) && item.images.length > 0 && item.images[0] ? (
-                            <img
-                              src={item.images[0]}
-                              alt={item?.name || 'Product'}
-                              className="w-full h-32 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="w-full h-32 bg-muted rounded flex items-center justify-center text-muted-foreground text-sm">
-                              No image
-                            </div>
-                          )}
-                          <div className="font-medium text-sm line-clamp-2">{item?.name || 'Unnamed Product'}</div>
-                          <div className="text-sm font-bold">{item?.price ? formatCurrency(item.price) : 'Price N/A'}</div>
-                        </div>
-                      ))}
+                      {selectedCustomer.wishlistItems.map((item) => {
+                        const imgSrc =
+                          (item?.images && item.images.length > 0 && item.images[0]) ||
+                          (item?.colorVariants && item.colorVariants.length > 0 && item.colorVariants[0]?.images?.[0]) ||
+                          null;
+                        return (
+                          <div key={item._id} className="border rounded-md p-3 space-y-2">
+                            {imgSrc ? (
+                              <img
+                                src={imgSrc}
+                                alt={item?.name || 'Product'}
+                                className="w-full h-32 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-full h-32 bg-muted rounded flex items-center justify-center text-muted-foreground text-sm">
+                                No image
+                              </div>
+                            )}
+                            <div className="font-medium text-sm line-clamp-2">{item?.name || 'Unnamed Product'}</div>
+                            <div className="text-sm font-bold">{item?.price ? formatCurrency(item.price) : 'Price N/A'}</div>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-6 text-muted-foreground italic">Wishlist is empty</div>
