@@ -8,8 +8,13 @@ interface LocalCart {
   items: CartItem[];
 }
 
+interface WishlistItem {
+  productId: string;
+  selectedColor: string | null;
+}
+
 interface LocalWishlist {
-  products: string[];
+  products: WishlistItem[];
 }
 
 export const localStorageService = {
@@ -24,12 +29,10 @@ export const localStorageService = {
 
   setCart(cart: LocalCart): void {
     localStorage.setItem('guest_cart', JSON.stringify(cart));
-    // Dispatch custom event to notify Header component
     window.dispatchEvent(new CustomEvent('cartUpdated'));
   },
 
   addToCart(productId: string, quantity: number = 1, selectedColor?: string): void {
-    // Strip variant suffix if present (e.g., "id_variant_0" -> "id")
     const baseProductId = productId.includes('_variant_') 
       ? productId.split('_variant_')[0] 
       : productId;
@@ -115,14 +118,19 @@ export const localStorageService = {
 
   clearCart(): void {
     localStorage.removeItem('guest_cart');
-    // Dispatch custom event to notify Header component
     window.dispatchEvent(new CustomEvent('cartUpdated'));
   },
 
   getWishlist(): LocalWishlist {
     try {
       const wishlist = localStorage.getItem('guest_wishlist');
-      return wishlist ? JSON.parse(wishlist) : { products: [] };
+      if (!wishlist) return { products: [] };
+      const parsed = JSON.parse(wishlist);
+      // Handle old format where products was an array of strings
+      if (Array.isArray(parsed.products) && parsed.products.length > 0 && typeof parsed.products[0] === 'string') {
+        return { products: parsed.products.map((id: string) => ({ productId: id, selectedColor: null })) };
+      }
+      return parsed;
     } catch {
       return { products: [] };
     }
@@ -130,32 +138,43 @@ export const localStorageService = {
 
   setWishlist(wishlist: LocalWishlist): void {
     localStorage.setItem('guest_wishlist', JSON.stringify(wishlist));
-    // Dispatch custom event to notify Header component
     window.dispatchEvent(new CustomEvent('wishlistUpdated'));
   },
 
-  addToWishlist(productId: string): void {
+  addToWishlist(productId: string, selectedColor?: string | null): void {
+    const baseProductId = productId.includes('_variant_')
+      ? productId.split('_variant_')[0]
+      : productId;
+    const color = selectedColor || null;
     const wishlist = this.getWishlist();
-    if (!wishlist.products.includes(productId)) {
-      wishlist.products.push(productId);
+    const exists = wishlist.products.some(
+      item => item.productId === baseProductId && item.selectedColor === color
+    );
+    if (!exists) {
+      wishlist.products.push({ productId: baseProductId, selectedColor: color });
       this.setWishlist(wishlist);
     }
   },
 
-  removeFromWishlist(productId: string): void {
+  removeFromWishlist(productId: string, selectedColor?: string | null): void {
+    const color = selectedColor !== undefined ? selectedColor : null;
     const wishlist = this.getWishlist();
-    wishlist.products = wishlist.products.filter(id => id !== productId);
+    wishlist.products = wishlist.products.filter(
+      item => !(item.productId === productId && item.selectedColor === color)
+    );
     this.setWishlist(wishlist);
   },
 
-  isInWishlist(productId: string): boolean {
+  isInWishlist(productId: string, selectedColor?: string | null): boolean {
     const wishlist = this.getWishlist();
-    return wishlist.products.includes(productId);
+    const color = selectedColor !== undefined ? selectedColor : null;
+    return wishlist.products.some(
+      item => item.productId === productId && item.selectedColor === color
+    );
   },
 
   clearWishlist(): void {
     localStorage.removeItem('guest_wishlist');
-    // Dispatch custom event to notify Header component
     window.dispatchEvent(new CustomEvent('wishlistUpdated'));
   }
 };

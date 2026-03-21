@@ -65,7 +65,8 @@ export default function NewArrivalCard({
   });
 
   const addToWishlistMutation = useMutation({
-    mutationFn: (productId: string) => apiRequest(`/api/wishlist/${productId}`, "POST"),
+    mutationFn: (productId: string) =>
+      apiRequest(`/api/wishlist/${productId}`, "POST", { selectedColor: displayColor || null }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
       toast({ title: "Added to wishlist!" });
@@ -73,7 +74,7 @@ export default function NewArrivalCard({
     onError: () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        localStorageService.addToWishlist(cartProductId);
+        localStorageService.addToWishlist(cartProductId, displayColor || null);
         queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
         toast({ title: "Added to wishlist!" });
       } else {

@@ -18,9 +18,11 @@ export async function migrateGuestDataToServer() {
       }
     }
 
-    for (const productId of guestWishlist.products) {
+    for (const item of guestWishlist.products) {
       try {
-        await apiRequest(`/api/wishlist/${productId}`, "POST");
+        await apiRequest(`/api/wishlist/${item.productId}`, "POST", {
+          selectedColor: item.selectedColor,
+        });
       } catch (error) {
         console.error("Failed to migrate wishlist item:", error);
       }

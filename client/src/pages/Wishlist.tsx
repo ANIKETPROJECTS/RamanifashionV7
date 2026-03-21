@@ -24,9 +24,20 @@ export default function Wishlist() {
     if (!token) {
       const localWishlist = localStorageService.getWishlist();
       const fetchProducts = async () => {
-        const productPromises = localWishlist.products.map(async (productId: string) => {
-          const response = await fetch(`/api/products/${productId}`);
-          return response.json();
+        const productPromises = localWishlist.products.map(async (item) => {
+          const response = await fetch(`/api/products/${item.productId}`);
+          const product = await response.json();
+          const selectedColor = item.selectedColor || null;
+          const colorVariant = selectedColor
+            ? product.colorVariants?.find((v: any) => v.color === selectedColor)
+            : null;
+          const displayImages =
+            colorVariant?.images?.length
+              ? colorVariant.images
+              : product.colorVariants?.[0]?.images?.length
+              ? product.colorVariants[0].images
+              : product.images || [];
+          return { ...product, selectedColor, displayImages };
         });
         const products = await Promise.all(productPromises);
         setGuestWishlist({ products });
@@ -44,7 +55,7 @@ export default function Wishlist() {
   const removeFromWishlistMutation = useMutation({
     mutationFn: ({ productId, selectedColor }: { productId: string; selectedColor?: string | null }) => {
       if (!token) {
-        localStorageService.removeFromWishlist(productId);
+        localStorageService.removeFromWishlist(productId, selectedColor);
         return Promise.resolve();
       }
       return apiRequest(`/api/wishlist/${productId}`, "DELETE", { selectedColor: selectedColor || null });
@@ -55,9 +66,20 @@ export default function Wishlist() {
       } else {
         const localWishlist = localStorageService.getWishlist();
         const fetchProducts = async () => {
-          const productPromises = localWishlist.products.map(async (productId: string) => {
-            const response = await fetch(`/api/products/${productId}`);
-            return response.json();
+          const productPromises = localWishlist.products.map(async (item) => {
+            const response = await fetch(`/api/products/${item.productId}`);
+            const product = await response.json();
+            const selectedColor = item.selectedColor || null;
+            const colorVariant = selectedColor
+              ? product.colorVariants?.find((v: any) => v.color === selectedColor)
+              : null;
+            const displayImages =
+              colorVariant?.images?.length
+                ? colorVariant.images
+                : product.colorVariants?.[0]?.images?.length
+                ? product.colorVariants[0].images
+                : product.images || [];
+            return { ...product, selectedColor, displayImages };
           });
           const products = await Promise.all(productPromises);
           setGuestWishlist({ products });

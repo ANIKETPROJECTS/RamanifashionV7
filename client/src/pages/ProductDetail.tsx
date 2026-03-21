@@ -142,19 +142,18 @@ export default function ProductDetail() {
   const addToWishlistMutation = useMutation({
     mutationFn: ({ productId, selectedColor }: { productId: string; selectedColor?: string }) =>
       apiRequest(`/api/wishlist/${productId}`, "POST", { selectedColor: selectedColor || null }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
-      const colorVariants = product.colorVariants && product.colorVariants.length > 0 ? product.colorVariants : null;
-      const currentColorVariant = colorVariants && colorVariants[selectedColorIndex];
-      const colorInfo = currentColorVariant ? ` (${currentColorVariant.color})` : "";
+      const colorInfo = variables.selectedColor ? ` (${variables.selectedColor})` : "";
       toast({ title: `Added to wishlist!${colorInfo}` });
     },
-    onError: () => {
+    onError: (_err, variables) => {
       const token = localStorage.getItem("token");
       if (!token) {
-        localStorageService.addToWishlist(product._id);
+        localStorageService.addToWishlist(variables.productId, variables.selectedColor || null);
         queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
-        toast({ title: "Added to wishlist!" });
+        const colorInfo = variables.selectedColor ? ` (${variables.selectedColor})` : "";
+        toast({ title: `Added to wishlist!${colorInfo}` });
       } else {
         toast({ title: "Failed to add to wishlist", variant: "destructive" });
       }
