@@ -82,14 +82,23 @@ export default function ProductDetail() {
     retry: false,
   });
 
+  const [wishlistOverride, setWishlistOverride] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setWishlistOverride(null);
+  }, [baseProductId]);
+
   const isWishlisted = useMemo(() => {
+    if (wishlistOverride !== null) return wishlistOverride;
     if (token) {
       return !!wishlistData?.products?.some(
         (item: any) => item._id?.toString() === baseProductId || item._id === baseProductId
       );
     }
-    return localStorageService.isInWishlist(baseProductId, null);
-  }, [wishlistData, baseProductId, token]);
+    return localStorageService.getWishlist().products.some(
+      (item: any) => item.productId === baseProductId
+    );
+  }, [wishlistData, baseProductId, token, wishlistOverride]);
 
   const selectedColorIndex = useMemo(() => {
     if (!product) return variantIndexFromUrl;
@@ -160,6 +169,7 @@ export default function ProductDetail() {
     mutationFn: ({ productId, selectedColor }: { productId: string; selectedColor?: string }) =>
       apiRequest(`/api/wishlist/${productId}`, "POST", { selectedColor: selectedColor || null }),
     onSuccess: (_data, variables) => {
+      setWishlistOverride(true);
       queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
       const colorInfo = variables.selectedColor ? ` (${variables.selectedColor})` : "";
       toast({ title: `Added to wishlist!${colorInfo}` });
@@ -168,6 +178,7 @@ export default function ProductDetail() {
       const token = localStorage.getItem("token");
       if (!token) {
         localStorageService.addToWishlist(variables.productId, variables.selectedColor || null);
+        setWishlistOverride(true);
         queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
         const colorInfo = variables.selectedColor ? ` (${variables.selectedColor})` : "";
         toast({ title: `Added to wishlist!${colorInfo}` });
