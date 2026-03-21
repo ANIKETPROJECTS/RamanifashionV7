@@ -1790,7 +1790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/inventory", authenticateAdmin, async (req, res) => {
     try {
       const products = await Product.find()
-        .select('name category stockQuantity inStock price')
+        .select('name category stockQuantity inStock price colorVariants')
         .sort({ stockQuantity: 1 })
         .lean();
 
@@ -3002,10 +3002,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/inventory", authenticateAdmin, async (req, res) => {
+  app.get("/api/admin/inventory-duplicate-removed", authenticateAdmin, async (req, res) => {
     try {
       const products = await Product.find()
-        .select('name category stockQuantity inStock price images')
+        .select('name category stockQuantity inStock price images colorVariants')
         .sort({ stockQuantity: 1 })
         .lean();
       

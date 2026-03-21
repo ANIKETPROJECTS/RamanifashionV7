@@ -280,6 +280,12 @@ export default function ProductCard({
           {name}
         </h3>
 
+        {displayColor && (
+          <span className="inline-block text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full mb-1 w-fit" data-testid={`text-color-${id}`}>
+            {displayColor}
+          </span>
+        )}
+
         <p className="text-xs text-muted-foreground line-clamp-1 mb-2 min-h-[1rem]" data-testid={`text-short-description-${id}`}>
           {displayShortDescription || ""}
         </p>

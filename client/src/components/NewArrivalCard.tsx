@@ -225,6 +225,12 @@ export default function NewArrivalCard({
           {name}
         </h3>
 
+        {displayColor && (
+          <span className="inline-block text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full mb-1 w-fit" data-testid={`text-color-${id}`}>
+            {displayColor}
+          </span>
+        )}
+
         <div className="flex items-center gap-2 flex-wrap mt-auto">
           <span className="text-lg font-bold text-black" data-testid={`text-price-${id}`}>
             ₹{price.toLocaleString()}

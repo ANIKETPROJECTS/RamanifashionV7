@@ -352,15 +352,33 @@ export default function InventoryManagement() {
       filtered = filtered.filter((p: any) => p.category === filterCategory);
     }
 
+    const expanded: any[] = [];
+    filtered.forEach((product: any) => {
+      if (product.colorVariants && product.colorVariants.length > 0) {
+        product.colorVariants.forEach((variant: any, index: number) => {
+          expanded.push({
+            ...product,
+            variantColor: variant.color,
+            variantIndex: index,
+            stockQuantity: variant.stockQuantity ?? product.stockQuantity ?? 0,
+            inStock: variant.inStock !== undefined ? variant.inStock : ((variant.stockQuantity ?? 0) > 0),
+          });
+        });
+      } else {
+        expanded.push({ ...product });
+      }
+    });
+
+    let result = expanded;
     if (filterStockStatus === "inStock") {
-      filtered = filtered.filter((p: any) => p.inStock === true && (p.stockQuantity || 0) > 0);
+      result = expanded.filter((p: any) => p.inStock === true && (p.stockQuantity || 0) > 0);
     } else if (filterStockStatus === "lowStock") {
-      filtered = filtered.filter((p: any) => (p.stockQuantity || 0) < 10 && (p.stockQuantity || 0) > 0 && p.inStock);
+      result = expanded.filter((p: any) => (p.stockQuantity || 0) < 10 && (p.stockQuantity || 0) > 0 && p.inStock);
     } else if (filterStockStatus === "outOfStock") {
-      filtered = filtered.filter((p: any) => !p.inStock || (p.stockQuantity || 0) === 0);
+      result = expanded.filter((p: any) => !p.inStock || (p.stockQuantity || 0) === 0);
     }
 
-    filtered.sort((a: any, b: any) => {
+    result.sort((a: any, b: any) => {
       switch (sortBy) {
         case "name":
           return (a.name || "").localeCompare(b.name || "");
@@ -377,7 +395,7 @@ export default function InventoryManagement() {
       }
     });
 
-    return filtered;
+    return result;
   }, [inventory, searchQuery, filterCategory, filterStockStatus, sortBy]);
 
   const categories = useMemo(() => {
@@ -574,6 +592,7 @@ export default function InventoryManagement() {
                 <TableHeader>
                   <TableRow>
                     <TableHead data-testid="header-product-name">Product Name</TableHead>
+                    <TableHead data-testid="header-color">Color</TableHead>
                     <TableHead data-testid="header-category">Category</TableHead>
                     <TableHead data-testid="header-price">Price</TableHead>
                     <TableHead data-testid="header-current-stock">Current Stock</TableHead>
@@ -586,19 +605,31 @@ export default function InventoryManagement() {
                     const stockQuantity = product.stockQuantity || 0;
                     const isLowStock = stockQuantity < 10 && stockQuantity > 0;
                     const isOutOfStock = !product.inStock || stockQuantity === 0;
+                    const rowKey = product.variantColor
+                      ? `${product._id}_${product.variantIndex}`
+                      : product._id;
 
                     return (
-                      <TableRow key={product._id} data-testid={`row-inventory-${product._id}`}>
-                        <TableCell className="font-medium" data-testid={`cell-name-${product._id}`}>
+                      <TableRow key={rowKey} data-testid={`row-inventory-${rowKey}`}>
+                        <TableCell className="font-medium" data-testid={`cell-name-${rowKey}`}>
                           {product.name}
                         </TableCell>
-                        <TableCell data-testid={`cell-category-${product._id}`}>
+                        <TableCell data-testid={`cell-color-${rowKey}`}>
+                          {product.variantColor ? (
+                            <span className="inline-block text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                              {product.variantColor}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell data-testid={`cell-category-${rowKey}`}>
                           {product.category}
                         </TableCell>
-                        <TableCell data-testid={`cell-price-${product._id}`}>
+                        <TableCell data-testid={`cell-price-${rowKey}`}>
                           ₹{product.price}
                         </TableCell>
-                        <TableCell data-testid={`cell-stock-${product._id}`}>
+                        <TableCell data-testid={`cell-stock-${rowKey}`}>
                           <span className={
                             isOutOfStock ? 'text-red-600 font-bold' : 
                             isLowStock ? 'text-orange-600 font-semibold' : 
