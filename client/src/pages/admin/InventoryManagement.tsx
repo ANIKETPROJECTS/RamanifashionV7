@@ -347,14 +347,23 @@ export default function InventoryManagement() {
     e.preventDefault();
     
     let colorVariants;
+    const newStockQty = parseInt(productForm.stockQuantity) || 0;
     if (editingProduct) {
       colorVariants = editingProduct.colorVariants || [{
         color: productForm.color || 'Default',
         images: uploadedImages.length > 0 ? uploadedImages : (editingProduct.images || [])
       }];
 
+      // Sync stockQuantity and inStock to all colorVariants when product stock is updated
+      colorVariants = colorVariants.map((v: any) => ({
+        ...v,
+        stockQuantity: newStockQty,
+        inStock: newStockQty > 0,
+      }));
+
       if (uploadedImages.length > 0 && productForm.color && colorVariants.length > 0) {
         colorVariants[0] = {
+          ...colorVariants[0],
           color: productForm.color,
           images: uploadedImages
         };

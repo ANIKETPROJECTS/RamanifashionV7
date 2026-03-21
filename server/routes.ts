@@ -1821,9 +1821,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/inventory/:id", authenticateAdmin, async (req, res) => {
     try {
       const { stockQuantity, inStock } = req.body;
+      const resolvedInStock = inStock !== undefined ? inStock : stockQuantity > 0;
+
       const product = await Product.findByIdAndUpdate(
         req.params.id,
-        { stockQuantity, inStock, updatedAt: new Date() },
+        { stockQuantity, inStock: resolvedInStock, updatedAt: new Date() },
         { new: true }
       );
 
@@ -1831,7 +1833,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Product not found' });
       }
 
-      res.json(product);
+      // Sync stockQuantity to all colorVariants
+      if (product.colorVariants && product.colorVariants.length > 0) {
+        await Product.updateOne(
+          { _id: req.params.id },
+          { $set: { 'colorVariants.$[].stockQuantity': stockQuantity, 'colorVariants.$[].inStock': resolvedInStock } }
+        );
+      }
+
+      const updated = await Product.findById(req.params.id).lean();
+      res.json(updated);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -3182,7 +3193,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/inventory/:id", authenticateAdmin, async (req, res) => {
     try {
       const { stockQuantity } = req.body;
-      // Automatically set inStock based on stockQuantity
       const inStock = stockQuantity > 0;
       
       const product = await Product.findByIdAndUpdate(
@@ -3193,7 +3203,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!product) {
         return res.status(404).json({ error: 'Product not found' });
       }
-      res.json(product);
+
+      // Sync stockQuantity to all colorVariants
+      if (product.colorVariants && product.colorVariants.length > 0) {
+        await Product.updateOne(
+          { _id: req.params.id },
+          { $set: { 'colorVariants.$[].stockQuantity': stockQuantity, 'colorVariants.$[].inStock': inStock } }
+        );
+      }
+
+      const updated = await Product.findById(req.params.id).lean();
+      res.json(updated);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
