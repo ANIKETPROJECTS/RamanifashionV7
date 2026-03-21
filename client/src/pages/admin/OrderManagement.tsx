@@ -136,7 +136,8 @@ export default function OrderManagement() {
       const response = await apiRequest(`/api/admin/orders?${queryParams}`, "GET");
       return response;
     },
-    enabled: !!adminToken
+    enabled: !!adminToken,
+    refetchInterval: 30000,
   });
 
   const approveOrderMutation = useMutation({

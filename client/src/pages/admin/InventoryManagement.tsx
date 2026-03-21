@@ -89,7 +89,8 @@ export default function InventoryManagement() {
 
   const { data: inventory, isLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/inventory"],
-    enabled: !!adminToken
+    enabled: !!adminToken,
+    refetchInterval: 30000,
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -122,6 +122,7 @@ export default function CustomerManagement() {
       return res.json();
     },
     enabled: !!adminToken,
+    refetchInterval: 30000,
   });
 
   const customers = customersData?.customers || [];

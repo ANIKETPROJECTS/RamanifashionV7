@@ -20,7 +20,6 @@ export async function apiRequest(
   
   const headers: Record<string, string> = {};
   
-  // Only set Content-Type for JSON data, not FormData (browser will set it automatically)
   if (data && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
@@ -46,7 +45,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const url = queryKey.join("/");
+    const url = queryKey[0] as string;
     const isAdminRoute = url.includes('/admin/');
     const token = isAdminRoute 
       ? localStorage.getItem("adminToken") 
@@ -76,8 +75,8 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      refetchOnWindowFocus: true,
+      staleTime: 0,
       retry: false,
     },
     mutations: {

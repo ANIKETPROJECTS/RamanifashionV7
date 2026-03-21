@@ -61,7 +61,8 @@ export default function Analytics() {
     pagination: any;
   }>({
     queryKey: ["/api/admin/customers"],
-    enabled: !!adminToken
+    enabled: !!adminToken,
+    refetchInterval: 30000,
   });
 
   const { data: ordersData, isLoading: loadingOrders } = useQuery<{
@@ -69,12 +70,14 @@ export default function Analytics() {
     pagination: any;
   }>({
     queryKey: ["/api/admin/orders"],
-    enabled: !!adminToken
+    enabled: !!adminToken,
+    refetchInterval: 30000,
   });
 
   const { data: analyticsData, isLoading: loadingAnalytics } = useQuery<AnalyticsData>({
     queryKey: ["/api/admin/analytics"],
-    enabled: !!adminToken
+    enabled: !!adminToken,
+    refetchInterval: 30000,
   });
 
   const customers = customersData?.customers || [];

@@ -126,6 +126,7 @@ export default function ReviewManagement() {
       return res.json();
     },
     enabled: !!adminToken,
+    refetchInterval: 30000,
   });
 
   const deleteMutation = useMutation({
