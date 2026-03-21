@@ -1212,10 +1212,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             const product = await Product.findById(item.productId);
             if (product) {
+              // Deduct from top-level stockQuantity
               const newQty = Math.max(0, ((product as any).stockQuantity || 0) - item.quantity);
               (product as any).stockQuantity = newQty;
               (product as any).inStock = newQty > 0;
               (product as any).updatedAt = new Date();
+
+              // Also deduct from the specific color variant if applicable
+              if (item.selectedColor && (product as any).colorVariants?.length > 0) {
+                const variant = (product as any).colorVariants.find(
+                  (v: any) => v.color === item.selectedColor
+                );
+                if (variant) {
+                  variant.stockQuantity = Math.max(0, (variant.stockQuantity || 0) - item.quantity);
+                  variant.inStock = variant.stockQuantity > 0;
+                } else {
+                  // Fallback: deduct from all variants equally
+                  for (const v of (product as any).colorVariants) {
+                    v.stockQuantity = Math.max(0, (v.stockQuantity || 0) - item.quantity);
+                    v.inStock = v.stockQuantity > 0;
+                  }
+                }
+              } else if ((product as any).colorVariants?.length > 0) {
+                // No color selected — deduct from all variants
+                for (const v of (product as any).colorVariants) {
+                  v.stockQuantity = Math.max(0, (v.stockQuantity || 0) - item.quantity);
+                  v.inStock = v.stockQuantity > 0;
+                }
+              }
+
               await product.save();
             }
           } catch (invErr: any) {
@@ -3066,10 +3091,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const product = await Product.findById(item.productId);
           if (product) {
+            // Restore top-level stockQuantity
             const newQty = ((product as any).stockQuantity || 0) + item.quantity;
             (product as any).stockQuantity = newQty;
             (product as any).inStock = newQty > 0;
             (product as any).updatedAt = new Date();
+
+            // Also restore the specific color variant if applicable
+            if (item.selectedColor && (product as any).colorVariants?.length > 0) {
+              const variant = (product as any).colorVariants.find(
+                (v: any) => v.color === item.selectedColor
+              );
+              if (variant) {
+                variant.stockQuantity = (variant.stockQuantity || 0) + item.quantity;
+                variant.inStock = variant.stockQuantity > 0;
+              } else {
+                // Fallback: restore all variants
+                for (const v of (product as any).colorVariants) {
+                  v.stockQuantity = (v.stockQuantity || 0) + item.quantity;
+                  v.inStock = v.stockQuantity > 0;
+                }
+              }
+            } else if ((product as any).colorVariants?.length > 0) {
+              // No color selected — restore all variants
+              for (const v of (product as any).colorVariants) {
+                v.stockQuantity = (v.stockQuantity || 0) + item.quantity;
+                v.inStock = v.stockQuantity > 0;
+              }
+            }
+
             await product.save();
           }
         } catch (invErr: any) {
