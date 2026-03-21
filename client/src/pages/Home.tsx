@@ -376,6 +376,7 @@ export default function Home() {
                   >
                     <ProductCard
                       id={product._id}
+                      displayColor={product.displayColor}
                       name={product.name}
                       image={product.displayImages?.[0] || product.images?.[0]}
                       secondaryImage={
@@ -482,6 +483,7 @@ export default function Home() {
                     >
                       <ProductCard
                         id={product._id}
+                        displayColor={product.displayColor}
                         name={product.name}
                         image={
                           product.displayImages?.[0] || product.images?.[0]
