@@ -81,9 +81,12 @@ export default function ProductCard({
   });
 
   const isInApiWishlist = !!wishlistData?.products?.some(
-    (item: any) => (item.productId?._id || item.productId) === cartProductId
+    (item: any) => item._id?.toString() === cartProductId || item._id === cartProductId
   );
-  const isInLocalWishlist = !token && localStorageService.isInWishlist(cartProductId, displayColor || null);
+  const isInLocalWishlist = !token && (
+    localStorageService.isInWishlist(cartProductId, displayColor || null) ||
+    localStorageService.getWishlist().products.some((item: any) => item.productId === cartProductId)
+  );
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   useEffect(() => {

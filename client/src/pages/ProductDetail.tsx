@@ -74,6 +74,23 @@ export default function ProductDetail() {
     },
   });
 
+  const token = localStorage.getItem("token");
+
+  const { data: wishlistData } = useQuery<any>({
+    queryKey: ["/api/wishlist"],
+    enabled: !!token,
+    retry: false,
+  });
+
+  const isWishlisted = useMemo(() => {
+    if (token) {
+      return !!wishlistData?.products?.some(
+        (item: any) => item._id?.toString() === baseProductId || item._id === baseProductId
+      );
+    }
+    return localStorageService.isInWishlist(baseProductId, null);
+  }, [wishlistData, baseProductId, token]);
+
   const selectedColorIndex = useMemo(() => {
     if (!product) return variantIndexFromUrl;
 
@@ -513,7 +530,7 @@ export default function ProductDetail() {
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full"
+                className={`rounded-full ${isWishlisted ? 'bg-destructive border-destructive hover:bg-destructive' : ''}`}
                 onClick={() => addToWishlistMutation.mutate({ 
                   productId: product._id, 
                   selectedColor: currentColorVariant?.color 
@@ -521,7 +538,7 @@ export default function ProductDetail() {
                 disabled={addToWishlistMutation.isPending}
                 data-testid="button-add-to-wishlist"
               >
-                <Heart className="h-4 w-4" />
+                <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-white text-white' : ''}`} />
               </Button>
             </div>
 
