@@ -82,31 +82,41 @@ export default function ProductDetail() {
     retry: false,
   });
 
+  const selectedColorIndex = useMemo(() => {
+    if (!product) return variantIndexFromUrl;
+    const maxIndex = (product.colorVariants?.length || 1) - 1;
+    return Math.min(variantIndexFromUrl, Math.max(0, maxIndex));
+  }, [product, variantIndexFromUrl]);
+
+  // The color of the currently viewed variant (null if product has no color variants)
+  const currentVariantColor = useMemo(() => {
+    if (!product?.colorVariants?.length) return null;
+    return product.colorVariants[selectedColorIndex]?.color || null;
+  }, [product, selectedColorIndex]);
+
   const [wishlistOverride, setWishlistOverride] = useState<boolean | null>(null);
 
+  // Reset override whenever the URL changes (covers both product & variant switches)
   useEffect(() => {
     setWishlistOverride(null);
-  }, [baseProductId]);
+  }, [id]);
 
   const isWishlisted = useMemo(() => {
     if (wishlistOverride !== null) return wishlistOverride;
     if (token) {
-      return !!wishlistData?.products?.some(
-        (item: any) => item._id?.toString() === baseProductId || item._id === baseProductId
-      );
+      return !!wishlistData?.products?.some((item: any) => {
+        const idMatch = item._id?.toString() === baseProductId || item._id === baseProductId;
+        if (!idMatch) return false;
+        if (currentVariantColor) return item.selectedColor === currentVariantColor;
+        return true;
+      });
     }
-    return localStorageService.getWishlist().products.some(
-      (item: any) => item.productId === baseProductId
-    );
-  }, [wishlistData, baseProductId, token, wishlistOverride]);
-
-  const selectedColorIndex = useMemo(() => {
-    if (!product) return variantIndexFromUrl;
-
-    // Guard against out-of-range variant index
-    const maxIndex = (product.colorVariants?.length || 1) - 1;
-    return Math.min(variantIndexFromUrl, Math.max(0, maxIndex));
-  }, [product, variantIndexFromUrl]);
+    return localStorageService.getWishlist().products.some((item: any) => {
+      if (item.productId !== baseProductId) return false;
+      if (currentVariantColor) return item.selectedColor === currentVariantColor;
+      return true;
+    });
+  }, [wishlistData, baseProductId, token, wishlistOverride, currentVariantColor]);
 
   const { data: similarProducts } = useQuery({
     queryKey: ["/api/products", "similar", product?.category, id, similarSort],
