@@ -141,6 +141,25 @@ export default function ProductCard({
     },
   });
 
+  const removeFromWishlistMutation = useMutation({
+    mutationFn: (productId: string) =>
+      apiRequest(`/api/wishlist/${productId}`, "DELETE", { selectedColor: displayColor || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+      toast({ title: "Removed from wishlist!" });
+    },
+    onError: () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        localStorageService.removeFromWishlist(cartProductId, displayColor || null);
+        queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+        toast({ title: "Removed from wishlist!" });
+      } else {
+        toast({ title: "Failed to remove from wishlist", variant: "destructive" });
+      }
+    },
+  });
+
   const buyNowMutation = useMutation({
     mutationFn: (data: any) => apiRequest("/api/cart", "POST", data),
     onSuccess: () => {
@@ -157,6 +176,8 @@ export default function ProductCard({
     setIsWishlisted(!isWishlisted);
     if (onAddToWishlist) {
       onAddToWishlist();
+    } else if (isWishlisted) {
+      removeFromWishlistMutation.mutate(cartProductId);
     } else {
       addToWishlistMutation.mutate(cartProductId);
     }

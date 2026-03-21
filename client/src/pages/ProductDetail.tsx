@@ -188,6 +188,29 @@ export default function ProductDetail() {
     },
   });
 
+  const removeFromWishlistMutation = useMutation({
+    mutationFn: ({ productId, selectedColor }: { productId: string; selectedColor?: string }) =>
+      apiRequest(`/api/wishlist/${productId}`, "DELETE", { selectedColor: selectedColor || null }),
+    onSuccess: (_data, variables) => {
+      setWishlistOverride(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+      const colorInfo = variables.selectedColor ? ` (${variables.selectedColor})` : "";
+      toast({ title: `Removed from wishlist!${colorInfo}` });
+    },
+    onError: (_err, variables) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        localStorageService.removeFromWishlist(variables.productId, variables.selectedColor || null);
+        setWishlistOverride(false);
+        queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+        const colorInfo = variables.selectedColor ? ` (${variables.selectedColor})` : "";
+        toast({ title: `Removed from wishlist!${colorInfo}` });
+      } else {
+        toast({ title: "Failed to remove from wishlist", variant: "destructive" });
+      }
+    },
+  });
+
   const buyNowMutation = useMutation({
     mutationFn: (data: any) => apiRequest("/api/cart", "POST", data),
     onSuccess: () => {
@@ -542,11 +565,15 @@ export default function ProductDetail() {
                 variant="outline"
                 size="icon"
                 className={`rounded-full ${isWishlisted ? 'bg-destructive border-destructive hover:bg-destructive' : ''}`}
-                onClick={() => addToWishlistMutation.mutate({ 
-                  productId: product._id, 
-                  selectedColor: currentColorVariant?.color 
-                })}
-                disabled={addToWishlistMutation.isPending}
+                onClick={() => {
+                  const payload = { productId: product._id, selectedColor: currentColorVariant?.color };
+                  if (isWishlisted) {
+                    removeFromWishlistMutation.mutate(payload);
+                  } else {
+                    addToWishlistMutation.mutate(payload);
+                  }
+                }}
+                disabled={addToWishlistMutation.isPending || removeFromWishlistMutation.isPending}
                 data-testid="button-add-to-wishlist"
               >
                 <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-white text-white' : ''}`} />

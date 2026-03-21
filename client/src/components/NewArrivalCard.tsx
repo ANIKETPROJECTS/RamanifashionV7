@@ -106,6 +106,25 @@ export default function NewArrivalCard({
     },
   });
 
+  const removeFromWishlistMutation = useMutation({
+    mutationFn: (productId: string) =>
+      apiRequest(`/api/wishlist/${productId}`, "DELETE", { selectedColor: displayColor || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+      toast({ title: "Removed from wishlist!" });
+    },
+    onError: () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        localStorageService.removeFromWishlist(cartProductId, displayColor || null);
+        queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+        toast({ title: "Removed from wishlist!" });
+      } else {
+        toast({ title: "Failed to remove from wishlist", variant: "destructive" });
+      }
+    },
+  });
+
   const buyNowMutation = useMutation({
     mutationFn: (data: any) => apiRequest("/api/cart", "POST", data),
     onSuccess: () => {
@@ -120,7 +139,11 @@ export default function NewArrivalCard({
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsWishlisted(!isWishlisted);
-    addToWishlistMutation.mutate(cartProductId);
+    if (isWishlisted) {
+      removeFromWishlistMutation.mutate(cartProductId);
+    } else {
+      addToWishlistMutation.mutate(cartProductId);
+    }
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
