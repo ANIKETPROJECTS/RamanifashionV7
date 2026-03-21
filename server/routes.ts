@@ -957,11 +957,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!wishlist) return res.json({ products: [] });
       const products = (wishlist as any).items
         .filter((item: any) => item.productId)
-        .map((item: any) => ({
-          ...(item.productId as any),
-          selectedColor: item.selectedColor || null,
-          _wishlistItemId: item._id,
-        }));
+        .map((item: any) => {
+          const p = item.productId as any;
+          const selectedColor = item.selectedColor || null;
+          const colorVariant = selectedColor
+            ? p.colorVariants?.find((v: any) => v.color === selectedColor)
+            : null;
+          const displayImages =
+            colorVariant?.images?.length
+              ? colorVariant.images
+              : p.colorVariants?.[0]?.images?.length
+              ? p.colorVariants[0].images
+              : p.images || [];
+          return {
+            ...p,
+            selectedColor,
+            displayImages,
+            _wishlistItemId: item._id,
+          };
+        });
       res.json({ products });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -995,11 +1009,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const populated = await Wishlist.findById(wishlist._id).populate('items.productId').lean();
       const products = ((populated as any)?.items || [])
         .filter((item: any) => item.productId)
-        .map((item: any) => ({
-          ...(item.productId as any),
-          selectedColor: item.selectedColor || null,
-          _wishlistItemId: item._id,
-        }));
+        .map((item: any) => {
+          const p = item.productId as any;
+          const selectedColor = item.selectedColor || null;
+          const colorVariant = selectedColor
+            ? p.colorVariants?.find((v: any) => v.color === selectedColor)
+            : null;
+          const displayImages =
+            colorVariant?.images?.length
+              ? colorVariant.images
+              : p.colorVariants?.[0]?.images?.length
+              ? p.colorVariants[0].images
+              : p.images || [];
+          return {
+            ...p,
+            selectedColor,
+            displayImages,
+            _wishlistItemId: item._id,
+          };
+        });
       res.json({ products });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -1030,11 +1058,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const populated = await Wishlist.findById(wishlist._id).populate('items.productId').lean();
       const products = ((populated as any)?.items || [])
         .filter((item: any) => item.productId)
-        .map((item: any) => ({
-          ...(item.productId as any),
-          selectedColor: item.selectedColor || null,
-          _wishlistItemId: item._id,
-        }));
+        .map((item: any) => {
+          const p = item.productId as any;
+          const selectedColor = item.selectedColor || null;
+          const colorVariant = selectedColor
+            ? p.colorVariants?.find((v: any) => v.color === selectedColor)
+            : null;
+          const displayImages =
+            colorVariant?.images?.length
+              ? colorVariant.images
+              : p.colorVariants?.[0]?.images?.length
+              ? p.colorVariants[0].images
+              : p.images || [];
+          return {
+            ...p,
+            selectedColor,
+            displayImages,
+            _wishlistItemId: item._id,
+          };
+        });
       res.json({ products });
     } catch (error: any) {
       res.status(500).json({ error: error.message });

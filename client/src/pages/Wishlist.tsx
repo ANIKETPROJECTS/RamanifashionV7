@@ -143,6 +143,7 @@ export default function Wishlist() {
             const displayImage =
               (selectedColor && product.colorVariants?.find((v: any) => v.color === selectedColor)?.images?.[0]) ||
               product.displayImages?.[0] ||
+              product.colorVariants?.[0]?.images?.[0] ||
               product.images?.[0] ||
               "/default-saree.jpg";
 
