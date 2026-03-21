@@ -52,13 +52,13 @@ export default function NewArrivalCard({
     retry: false,
   });
 
-  const isInApiWishlist = !!wishlistData?.products?.some(
-    (item: any) => item._id?.toString() === cartProductId || item._id === cartProductId
-  );
-  const isInLocalWishlist = !token && (
-    localStorageService.isInWishlist(cartProductId, displayColor || null) ||
-    localStorageService.getWishlist().products.some((item: any) => item.productId === cartProductId)
-  );
+  const isInApiWishlist = !!wishlistData?.products?.some((item: any) => {
+    const idMatch = item._id?.toString() === cartProductId || item._id === cartProductId;
+    if (!idMatch) return false;
+    if (displayColor) return item.selectedColor === displayColor;
+    return true;
+  });
+  const isInLocalWishlist = !token && localStorageService.isInWishlist(cartProductId, displayColor || null);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   useEffect(() => {
