@@ -2334,7 +2334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Get wishlist with limited product details (only essential fields)
           const wishlist: any = await Wishlist.findOne({ userId: customer._id })
             .populate({
-              path: 'products',
+              path: 'items.productId',
               select: '_id name price images'
             })
             .lean();
@@ -2362,7 +2362,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
           const pendingOrders = orders.filter(o => o.orderStatus === 'pending').length;
           const completedOrders = orders.filter(o => o.orderStatus === 'delivered').length;
-          const wishlistProducts = (wishlist && Array.isArray(wishlist.products)) ? wishlist.products : [];
+          const wishlistProducts = (wishlist && Array.isArray(wishlist.items))
+            ? wishlist.items.map((item: any) => item.productId).filter(Boolean)
+            : [];
           
           return {
             _id: customer._id,
