@@ -1972,6 +1972,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Inventory Export Route
+  app.get("/api/admin/inventory/export", authenticateAdmin, async (req, res) => {
+    try {
+      const products = await Product.find().lean();
+
+      const excelData = products.map((product: any) => {
+        const variants = (product.colorVariants || [])
+          .map((v: any) => `${v.color} (Stock: ${v.stockQuantity ?? 0})`)
+          .join('; ');
+        return {
+          'Product Name': product.name,
+          'Category': product.category,
+          'Subcategory': product.subcategory || '',
+          'Price': product.price,
+          'Original Price': product.originalPrice || '',
+          'Fabric': product.fabric || '',
+          'Occasion': product.occasion || '',
+          'Pattern': product.pattern || '',
+          'Work Type': product.workType || '',
+          'Blouse Piece': product.blousePiece ? 'Yes' : 'No',
+          'Saree Length': product.sareeLength || '',
+          'Stock Quantity': product.stockQuantity || 0,
+          'In Stock': product.inStock ? 'Yes' : 'No',
+          'Is New': product.isNew ? 'Yes' : 'No',
+          'Is Bestseller': product.isBestseller ? 'Yes' : 'No',
+          'Is Trending': product.isTrending ? 'Yes' : 'No',
+          'Color Variants': variants,
+          'Description': product.description || '',
+        };
+      });
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      worksheet['!cols'] = [
+        { wch: 35 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 12 },
+        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 },
+        { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 },
+        { wch: 12 }, { wch: 40 }, { wch: 50 },
+      ];
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory');
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      res.setHeader('Content-Disposition', `attachment; filename=inventory_export_${Date.now()}.xlsx`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.send(buffer);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Inventory Import Route (skips existing products by name)
+  app.post("/api/admin/inventory/import", authenticateAdmin, (req, res) => {
+    upload.single('file')(req, res, async (err: any) => {
+      if (err) return res.status(400).json({ error: err.message });
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+      try {
+        const workbook = XLSX.readFile(req.file.path);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        fs.unlinkSync(req.file.path);
+
+        let imported = 0;
+        let skipped = 0;
+        let failed = 0;
+        const errors: string[] = [];
+
+        for (let i = 0; i < jsonData.length; i++) {
+          const row: any = jsonData[i];
+          const rowNum = i + 2;
+
+          try {
+            const name = row['Product Name'] || row['Name'] || row['name'] || '';
+            if (!name) {
+              errors.push(`Row ${rowNum}: Missing product name`);
+              failed++;
+              continue;
+            }
+
+            // Skip if product with this name already exists (case-insensitive)
+            const exists = await Product.findOne({ name: { $regex: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+            if (exists) {
+              skipped++;
+              continue;
+            }
+
+            const price = parseFloat(row['Price'] || row['price'] || '0');
+            const category = row['Category'] || row['category'] || '';
+
+            if (!category || !price) {
+              errors.push(`Row ${rowNum}: Missing required fields (Category or Price)`);
+              failed++;
+              continue;
+            }
+
+            const productData: any = {
+              name,
+              description: row['Description'] || row['description'] || '',
+              price,
+              originalPrice: row['Original Price'] || row['originalPrice'] ? parseFloat(row['Original Price'] || row['originalPrice']) : undefined,
+              category,
+              subcategory: row['Subcategory'] || row['subcategory'] || '',
+              fabric: row['Fabric'] || row['fabric'] || '',
+              occasion: row['Occasion'] || row['occasion'] || '',
+              pattern: row['Pattern'] || row['pattern'] || '',
+              workType: row['Work Type'] || row['workType'] || '',
+              blousePiece: (row['Blouse Piece'] || row['blousePiece'] || '') === 'Yes',
+              sareeLength: row['Saree Length'] || row['sareeLength'] || '',
+              stockQuantity: parseInt(row['Stock Quantity'] || row['stockQuantity'] || '0'),
+              inStock: (row['In Stock'] || row['inStock'] || 'No') === 'Yes',
+              isNew: (row['Is New'] || row['isNew'] || 'No') === 'Yes',
+              isBestseller: (row['Is Bestseller'] || row['isBestseller'] || 'No') === 'Yes',
+              isTrending: (row['Is Trending'] || row['isTrending'] || 'No') === 'Yes',
+              colorVariants: [{
+                color: row['Color'] || row['color'] || 'Default',
+                images: [],
+                stockQuantity: parseInt(row['Stock Quantity'] || row['stockQuantity'] || '0'),
+                inStock: (row['In Stock'] || row['inStock'] || 'No') === 'Yes',
+              }],
+            };
+
+            const product = new Product(productData);
+            await product.save();
+            imported++;
+          } catch (error: any) {
+            errors.push(`Row ${rowNum}: ${error.message}`);
+            failed++;
+          }
+        }
+
+        res.json({
+          success: true,
+          imported,
+          skipped,
+          failed,
+          errors,
+          message: `Import complete: ${imported} imported, ${skipped} skipped (already exist), ${failed} failed.`,
+        });
+      } catch (error: any) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+  });
+
   // Admin Analytics Routes
   app.get("/api/admin/analytics", authenticateAdmin, async (req, res) => {
     try {

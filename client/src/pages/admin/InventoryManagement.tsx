@@ -38,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Pencil, Trash2, Upload, X, Link as LinkIcon } from "lucide-react";
+import { Search, Pencil, Trash2, Upload, X, Link as LinkIcon, Download, FileUp, CheckCircle, AlertCircle, SkipForward } from "lucide-react";
 
 export default function InventoryManagement() {
   const { toast } = useToast();
@@ -59,6 +59,18 @@ export default function InventoryManagement() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+
+  const importFileRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    imported: number;
+    skipped: number;
+    failed: number;
+    errors: string[];
+    message: string;
+  } | null>(null);
+  const [importResultOpen, setImportResultOpen] = useState(false);
   
   const [productForm, setProductForm] = useState({
     name: "",
@@ -212,6 +224,57 @@ export default function InventoryManagement() {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   });
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const res = await fetch('/api/admin/inventory/export', {
+        headers: { 'Authorization': `Bearer ${adminToken}` },
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `inventory_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "Export successful", description: "Inventory downloaded as Excel file." });
+    } catch (error: any) {
+      toast({ title: "Export failed", description: error.message, variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/admin/inventory/import', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${adminToken}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Import failed');
+      setImportResult(data);
+      setImportResultOpen(true);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+    } catch (error: any) {
+      toast({ title: "Import failed", description: error.message, variant: "destructive" });
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const handleEdit = async (product: any) => {
     setIsLoadingProduct(true);
@@ -417,13 +480,43 @@ export default function InventoryManagement() {
   return (
     <AdminLayout>
       <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold" data-testid="text-page-title">
-          Inventory Management
-        </h1>
-        <p className="text-muted-foreground">
-          Track and manage product stock levels
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold" data-testid="text-page-title">
+            Inventory Management
+          </h1>
+          <p className="text-muted-foreground">
+            Track and manage product stock levels
+          </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <input
+            ref={importFileRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportFileChange}
+            data-testid="input-import-file"
+          />
+          <Button
+            variant="outline"
+            onClick={() => importFileRef.current?.click()}
+            disabled={isImporting}
+            data-testid="button-import-excel"
+          >
+            <FileUp className="h-4 w-4 mr-2" />
+            {isImporting ? "Importing..." : "Import Excel"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={isExporting}
+            data-testid="button-export-excel"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? "Exporting..." : "Export Excel"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -1064,6 +1157,57 @@ export default function InventoryManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={importResultOpen} onOpenChange={setImportResultOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import Results</DialogTitle>
+          </DialogHeader>
+          {importResult && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-400">{importResult.imported}</div>
+                  <div className="text-xs text-green-600 dark:text-green-500 font-medium">Imported</div>
+                </div>
+                <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800">
+                  <SkipForward className="h-6 w-6 text-yellow-600" />
+                  <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{importResult.skipped}</div>
+                  <div className="text-xs text-yellow-600 dark:text-yellow-500 font-medium">Skipped</div>
+                </div>
+                <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                  <div className="text-2xl font-bold text-red-700 dark:text-red-400">{importResult.failed}</div>
+                  <div className="text-xs text-red-600 dark:text-red-500 font-medium">Failed</div>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground text-center">{importResult.message}</p>
+              {importResult.skipped > 0 && (
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 text-center">
+                  Skipped rows already exist in the database (matched by product name).
+                </p>
+              )}
+              {importResult.errors.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-destructive">Errors:</p>
+                  <div className="max-h-40 overflow-y-auto rounded border p-2 space-y-1 bg-muted/30">
+                    {importResult.errors.map((err, i) => (
+                      <p key={i} className="text-xs text-destructive">{err}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end">
+                <Button onClick={() => setImportResultOpen(false)} data-testid="button-import-result-close">
+                  Done
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       </div>
     </AdminLayout>
   );
