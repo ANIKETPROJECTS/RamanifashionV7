@@ -51,6 +51,7 @@ export default function InventoryManagement() {
   const [filterStockStatus, setFilterStockStatus] = useState("all");
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingVariantIndex, setEditingVariantIndex] = useState<number>(-1);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
@@ -286,18 +287,26 @@ export default function InventoryManagement() {
         throw new Error('Failed to fetch product details');
       }
       const fullProduct = await response.json();
-      
-      const images = (fullProduct.images && fullProduct.images.length > 0) 
-        ? fullProduct.images
-        : (fullProduct.colorVariants && fullProduct.colorVariants[0]?.images) || 
-        [];
-      
-      console.log("Full product:", fullProduct);
-      console.log("fullProduct.images:", fullProduct.images);
-      console.log("fullProduct.colorVariants:", fullProduct.colorVariants);
-      console.log("Images found:", images);
-      
+
+      // Determine which variant is being edited based on the row's variantIndex
+      const vIdx = typeof product.variantIndex === 'number' ? product.variantIndex : -1;
+      const activeVariant = vIdx >= 0 && fullProduct.colorVariants?.[vIdx]
+        ? fullProduct.colorVariants[vIdx]
+        : null;
+
+      const variantColor = activeVariant?.color
+        || fullProduct.color
+        || (fullProduct.colorVariants && fullProduct.colorVariants[0]?.color)
+        || "";
+
+      const variantStock = activeVariant?.stockQuantity ?? fullProduct.stockQuantity ?? 0;
+
+      const images = activeVariant?.images?.length
+        ? activeVariant.images
+        : (fullProduct.images?.length ? fullProduct.images : (fullProduct.colorVariants?.[0]?.images || []));
+
       setEditingProduct(fullProduct);
+      setEditingVariantIndex(vIdx);
       setUploadedImages(images);
       setProductForm({
         name: fullProduct.name || "",
@@ -307,14 +316,14 @@ export default function InventoryManagement() {
         category: fullProduct.category || "",
         subcategory: fullProduct.subcategory || "",
         fabric: fullProduct.fabric || "",
-        color: fullProduct.color || (fullProduct.colorVariants && fullProduct.colorVariants[0]?.color) || "",
+        color: variantColor,
         occasion: fullProduct.occasion || "",
         pattern: fullProduct.pattern || "",
         workType: fullProduct.workType || "",
         blousePiece: fullProduct.blousePiece || false,
         sareeLength: fullProduct.sareeLength || "",
-        stockQuantity: fullProduct.stockQuantity?.toString() || "",
-        inStock: fullProduct.inStock !== false,
+        stockQuantity: variantStock.toString(),
+        inStock: variantStock > 0,
         isNew: fullProduct.isNew || false,
         isTrending: fullProduct.isTrending || false,
         isBestseller: fullProduct.isBestseller || false,
@@ -340,6 +349,7 @@ export default function InventoryManagement() {
   const handleCloseEditDialog = () => {
     setIsEditDialogOpen(false);
     setEditingProduct(null);
+    setEditingVariantIndex(-1);
     setUploadedImages([]);
   };
 
@@ -354,19 +364,31 @@ export default function InventoryManagement() {
         images: uploadedImages.length > 0 ? uploadedImages : (editingProduct.images || [])
       }];
 
-      // Sync stockQuantity and inStock to all colorVariants when product stock is updated
-      colorVariants = colorVariants.map((v: any) => ({
-        ...v,
-        stockQuantity: newStockQty,
-        inStock: newStockQty > 0,
-      }));
-
-      if (uploadedImages.length > 0 && productForm.color && colorVariants.length > 0) {
-        colorVariants[0] = {
-          ...colorVariants[0],
-          color: productForm.color,
-          images: uploadedImages
-        };
+      if (editingVariantIndex >= 0 && colorVariants[editingVariantIndex]) {
+        // Only update the specific variant being edited — leave others unchanged
+        colorVariants = colorVariants.map((v: any, i: number) => {
+          if (i === editingVariantIndex) {
+            return {
+              ...v,
+              color: productForm.color || v.color,
+              stockQuantity: newStockQty,
+              inStock: newStockQty > 0,
+              images: uploadedImages.length > 0 ? uploadedImages : v.images,
+            };
+          }
+          return v;
+        });
+      } else {
+        // No specific variant — update images on first variant if provided
+        if (uploadedImages.length > 0 && productForm.color && colorVariants.length > 0) {
+          colorVariants[0] = {
+            ...colorVariants[0],
+            color: productForm.color,
+            images: uploadedImages,
+            stockQuantity: newStockQty,
+            inStock: newStockQty > 0,
+          };
+        }
       }
     } else {
       colorVariants = [{
@@ -374,6 +396,10 @@ export default function InventoryManagement() {
         images: uploadedImages
       }];
     }
+
+    // Compute product-level stockQuantity as the sum of all variant stock
+    const totalVariantStock = colorVariants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+    const productLevelStock = colorVariants.length > 0 ? totalVariantStock : newStockQty;
     
     const formattedData = {
       name: productForm.name,
@@ -390,8 +416,8 @@ export default function InventoryManagement() {
       workType: productForm.workType || undefined,
       blousePiece: productForm.blousePiece,
       sareeLength: productForm.sareeLength || undefined,
-      stockQuantity: parseInt(productForm.stockQuantity) || 0,
-      inStock: productForm.inStock,
+      stockQuantity: productLevelStock,
+      inStock: productLevelStock > 0,
       isNew: productForm.isNew,
       isTrending: productForm.isTrending,
       isBestseller: productForm.isBestseller,
