@@ -28,7 +28,7 @@ app.use((req, res, next) => {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google-analytics.com https://dgq88cldibal5.cloudfront.net https://mercurystatic.phonepe.com https://linchpin.phonepe.com https://mercury.phonepe.com https://www.phonepe.com https://mercury-t2.phonepe.com blob: data:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: https:",
+      "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
       "media-src 'self' data: blob:",
       "connect-src 'self' https://api.phonepe.com https://mercury.phonepe.com https://mercury-t2.phonepe.com https://fonts.googleapis.com wss: https:",
