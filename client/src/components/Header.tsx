@@ -22,10 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import {
   Sheet,
@@ -417,55 +415,68 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                       TRENDING
                     </Link>
                   </NavigationMenuItem>
+                  {/* Custom Categories dropdown – bypasses NavigationMenuViewport so it anchors directly below the trigger */}
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger 
-                      className={`px-2 lg:px-3 py-2 tracking-wide text-sm lg:text-base font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent whitespace-nowrap ${navState.isCategories ? "nav-link active text-primary" : ""}`} 
-                      data-testid="link-categories"
+                    <div
+                      className="relative"
+                      onMouseEnter={() => setHoveredMainCategory(hoveredMainCategory ?? "__open__")}
+                      onMouseLeave={() => setHoveredMainCategory(null)}
                     >
-                      CATEGORIES
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent className="!w-auto min-w-[180px]">
-                      <div className="flex" onMouseLeave={() => setHoveredMainCategory(null)}>
-                        {/* First level: 4 main categories */}
-                        <ul className="py-2 min-w-[180px]">
-                          {CATEGORY_MENU.map((cat) => (
-                            <li
-                              key={cat.label}
-                              className={`flex items-center justify-between px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors whitespace-nowrap ${hoveredMainCategory === cat.label ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-pink-50 hover:text-pink-600"}`}
-                              onMouseEnter={() => setHoveredMainCategory(cat.label)}
-                              onClick={() => {
-                                if (cat.subCategories.length === 0) {
-                                  setLocation(`/products?${cat.param}`);
-                                }
-                              }}
-                              data-testid={`category-main-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
-                            >
-                              <span>{cat.label}</span>
-                              {cat.subCategories.length > 0 && (
-                                <ChevronRight className="h-4 w-4 ml-3 text-gray-400" />
-                              )}
-                            </li>
-                          ))}
-                        </ul>
+                      {/* Trigger button */}
+                      <button
+                        className={`nav-link flex items-center gap-1 px-2 lg:px-3 py-2 tracking-wide text-sm lg:text-base font-medium whitespace-nowrap bg-transparent border-0 cursor-pointer ${navState.isCategories ? "active text-primary" : ""}`}
+                        data-testid="link-categories"
+                      >
+                        CATEGORIES
+                        <ChevronRight className="h-3.5 w-3.5 rotate-90 opacity-60" />
+                      </button>
 
-                        {/* Second level: sub-categories */}
-                        {hoveredMainCategory && CATEGORY_MENU.find(c => c.label === hoveredMainCategory)?.subCategories.length ? (
-                          <ul className="py-2 min-w-[200px] border-l border-gray-100 bg-white">
-                            {CATEGORY_MENU.find(c => c.label === hoveredMainCategory)!.subCategories.map((sub) => (
-                              <li key={sub.label}>
-                                <Link
-                                  href={`/products?${sub.param}`}
-                                  className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-colors whitespace-nowrap"
-                                  data-testid={`category-sub-${sub.label.toLowerCase().replace(/\s+/g, '-')}`}
-                                >
-                                  {sub.label}
-                                </Link>
+                      {/* Dropdown panel – absolutely anchored below the trigger */}
+                      {hoveredMainCategory !== null && (
+                        <div className="absolute left-0 top-full z-50 flex shadow-lg border border-gray-100 rounded-md bg-white overflow-hidden">
+                          {/* Level 1: main categories */}
+                          <ul className="py-2 min-w-[180px]">
+                            {CATEGORY_MENU.map((cat) => (
+                              <li
+                                key={cat.label}
+                                className={`flex items-center justify-between px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors whitespace-nowrap ${hoveredMainCategory === cat.label ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-pink-50 hover:text-pink-600"}`}
+                                onMouseEnter={() => setHoveredMainCategory(cat.label)}
+                                onClick={() => {
+                                  if (cat.subCategories.length === 0) {
+                                    setHoveredMainCategory(null);
+                                    setLocation(`/products?${cat.param}`);
+                                  }
+                                }}
+                                data-testid={`category-main-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                              >
+                                <span>{cat.label}</span>
+                                {cat.subCategories.length > 0 && (
+                                  <ChevronRight className="h-4 w-4 ml-3 text-gray-400" />
+                                )}
                               </li>
                             ))}
                           </ul>
-                        ) : null}
-                      </div>
-                    </NavigationMenuContent>
+
+                          {/* Level 2: sub-categories, shown when a parent is hovered */}
+                          {hoveredMainCategory && hoveredMainCategory !== "__open__" && CATEGORY_MENU.find(c => c.label === hoveredMainCategory)?.subCategories.length ? (
+                            <ul className="py-2 min-w-[210px] border-l border-gray-100 bg-white">
+                              {CATEGORY_MENU.find(c => c.label === hoveredMainCategory)!.subCategories.map((sub) => (
+                                <li key={sub.label}>
+                                  <Link
+                                    href={`/products?${sub.param}`}
+                                    className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-colors whitespace-nowrap"
+                                    onClick={() => setHoveredMainCategory(null)}
+                                    data-testid={`category-sub-${sub.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                  >
+                                    {sub.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Link 
