@@ -32,6 +32,7 @@ import ReviewManagement from "@/pages/admin/ReviewManagement";
 import Analytics from "@/pages/admin/Analytics";
 import MediaManagement from "@/pages/admin/MediaManagement";
 import Settings from "@/pages/admin/Settings";
+import CategoryManagement from "@/pages/admin/CategoryManagement";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Shipping from "@/pages/Shipping";
@@ -73,6 +74,7 @@ function Router() {
       <Route path="/admin/customers" component={CustomerManagement} />
       <Route path="/admin/reviews" component={ReviewManagement} />
       <Route path="/admin/analytics" component={Analytics} />
+      <Route path="/admin/categories" component={CategoryManagement} />
       <Route path="/admin/media" component={MediaManagement} />
       <Route path="/admin/settings" component={Settings} />
       <Route component={NotFound} />

@@ -123,6 +123,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST upload image for a main category
+  app.post("/api/admin/categories/:id/upload-image", authenticateAdmin, (req, res) => {
+    upload.single("image")(req, res, async (err: any) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err) return res.status(500).json({ error: "Upload failed" });
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+      try {
+        const url = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+        const category = await Category.findByIdAndUpdate(
+          req.params.id,
+          { image: url, updatedAt: new Date() },
+          { new: true }
+        );
+        if (!category) return res.status(404).json({ error: "Category not found" });
+        res.json({ success: true, image: url, category });
+      } catch (e: any) {
+        res.status(500).json({ error: e.message });
+      }
+    });
+  });
+
+  // POST add a subcategory to a main category (with optional image upload)
+  app.post("/api/admin/categories/:id/subcategories", authenticateAdmin, (req, res) => {
+    upload.single("image")(req, res, async (err: any) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err) return res.status(500).json({ error: "Upload failed" });
+      try {
+        const { name } = req.body;
+        if (!name) return res.status(400).json({ error: "Subcategory name is required" });
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        let imageUrl = "";
+        if (req.file) {
+          imageUrl = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+        }
+        const category = await Category.findById(req.params.id);
+        if (!category) return res.status(404).json({ error: "Category not found" });
+        const subs: any[] = Array.isArray(category.subCategories) ? [...category.subCategories] : [];
+        if (subs.some((s: any) => s.slug === slug)) {
+          return res.status(400).json({ error: "Subcategory with this name already exists" });
+        }
+        subs.push({ name, slug, image: imageUrl, subCategories: [] });
+        category.subCategories = subs;
+        category.updatedAt = new Date();
+        await category.save();
+        res.json({ success: true, category });
+      } catch (e: any) {
+        res.status(500).json({ error: e.message });
+      }
+    });
+  });
+
+  // PUT edit a subcategory (name and/or image)
+  app.put("/api/admin/categories/:id/subcategories/:subSlug", authenticateAdmin, (req, res) => {
+    upload.single("image")(req, res, async (err: any) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err) return res.status(500).json({ error: "Upload failed" });
+      try {
+        const category = await Category.findById(req.params.id);
+        if (!category) return res.status(404).json({ error: "Category not found" });
+        const subs: any[] = Array.isArray(category.subCategories) ? [...category.subCategories] : [];
+        const idx = subs.findIndex((s: any) => s.slug === req.params.subSlug);
+        if (idx === -1) return res.status(404).json({ error: "Subcategory not found" });
+        const { name } = req.body;
+        if (name) {
+          subs[idx].name = name;
+          subs[idx].slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        }
+        if (req.file) {
+          subs[idx].image = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+        }
+        category.subCategories = subs;
+        category.updatedAt = new Date();
+        await category.save();
+        res.json({ success: true, category });
+      } catch (e: any) {
+        res.status(500).json({ error: e.message });
+      }
+    });
+  });
+
+  // DELETE a subcategory from a main category
+  app.delete("/api/admin/categories/:id/subcategories/:subSlug", authenticateAdmin, async (req, res) => {
+    try {
+      const category = await Category.findById(req.params.id);
+      if (!category) return res.status(404).json({ error: "Category not found" });
+      const subs: any[] = Array.isArray(category.subCategories) ? [...category.subCategories] : [];
+      const filtered = subs.filter((s: any) => s.slug !== req.params.subSlug);
+      if (filtered.length === subs.length) return res.status(404).json({ error: "Subcategory not found" });
+      category.subCategories = filtered;
+      category.updatedAt = new Date();
+      await category.save();
+      res.json({ success: true, category });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // Product Routes
   app.get("/api/products", async (req, res) => {
     try {
