@@ -1,4 +1,4 @@
-import { ShoppingBag, Heart, User, Search, Menu, LogOut, ChevronDown, ChevronRight, Loader2, X } from "lucide-react";
+import { ShoppingBag, Heart, User, Search, Menu, LogOut, ChevronRight, Loader2, X } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import instagramIcon from "@assets/instagram_1762445939344.png";
 import facebookIcon from "@assets/communication_1762445935759.png";
@@ -39,13 +39,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import logoImage from "@assets/PNG__B_ LOGO_1762442171742.png";
-import paithaniImage from "@/assets/paithani.png";
-import khunIrkalImage from "@/assets/khun-irkal.png";
-import ajrakhModalImage from "@/assets/ajrakh-modal.png";
-import mulCottonImage from "@/assets/mul-cotton.png";
-import khadiCottonImage from "@/assets/khadi-cotton.png";
-import patchWorkImage from "@/assets/patch-work.png";
-import pureLinenImage from "@/assets/pure-linen.png";
 
 interface HeaderProps {
   cartCount?: number;
@@ -66,6 +59,47 @@ interface SearchProduct {
   displayImage: string;
 }
 
+const CATEGORY_MENU = [
+  {
+    label: "SAREES",
+    param: "mainCategory=Sarees",
+    subCategories: [
+      { label: "Jamdani Paithani", param: "category=Jamdani Paithani" },
+      { label: "Khun / Irkal (Ilkal)", param: "category=Khun Irkal" },
+      { label: "Ajrakh Modal", param: "category=Ajrakh Modal" },
+      { label: "Mul Mul Cotton", param: "category=Mul Mul Cotton" },
+      { label: "Khadi Cotton", param: "category=Khadi Cotton" },
+      { label: "Patch Work", param: "category=Patch Work" },
+      { label: "Pure Linen", param: "category=Pure Linen" },
+    ],
+  },
+  {
+    label: "BLOUSES",
+    param: "mainCategory=Blouses",
+    subCategories: [
+      { label: "Designer Blouses", param: "category=Designer Blouses" },
+      { label: "Plain Blouses", param: "category=Plain Blouses" },
+      { label: "Embroidered Blouses", param: "category=Embroidered Blouses" },
+      { label: "Ready-made Blouses", param: "category=Ready-made Blouses" },
+    ],
+  },
+  {
+    label: "DRESS MATERIALS",
+    param: "mainCategory=Dress Materials",
+    subCategories: [
+      { label: "Cotton Dress Materials", param: "category=Cotton Dress Materials" },
+      { label: "Silk Dress Materials", param: "category=Silk Dress Materials" },
+      { label: "Linen Dress Materials", param: "category=Linen Dress Materials" },
+      { label: "Printed Dress Materials", param: "category=Printed Dress Materials" },
+    ],
+  },
+  {
+    label: "JEWELLERY",
+    param: "mainCategory=Jewellery",
+    subCategories: [],
+  },
+];
+
 export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useLocation();
@@ -73,6 +107,8 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
   const [storageUpdateTrigger, setStorageUpdateTrigger] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [openMobileSubCategory, setOpenMobileSubCategory] = useState<string | null>(null);
+  const [hoveredMainCategory, setHoveredMainCategory] = useState<string | null>(null);
   const { isLoginOpen, openLogin, closeLogin } = useAuthUI();
   
   // Search dropdown state
@@ -388,136 +424,46 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                     >
                       CATEGORIES
                     </NavigationMenuTrigger>
-                    <NavigationMenuContent className="fixed left-1/2 bg-transparent shadow-none border-0 py-6" style={{ transform: "translateX(calc(-50% + 80px))" }}>
-                      <div className="px-6 md:px-12">
-                        <div className="flex flex-nowrap gap-3 md:gap-4 lg:gap-5 justify-center items-start">
-                          <Link
-                            href="/products?category=Jamdani Paithani"
-                            className="group flex flex-col items-center flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40"
-                            data-testid="category-jamdani-paithani"
-                          >
-                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 shadow-md group-hover:shadow-xl">
-                              <img
-                                src={paithaniImage}
-                                alt="Jamdani Paithani"
-                                className="hidden w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                            <div className="mt-2 md:mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white bg-pink-500 px-2 sm:px-3 md:px-4 py-1 md:py-1.5 rounded-full inline-block whitespace-nowrap">
-                                Jamdani Paithani
-                              </span>
-                            </div>
-                          </Link>
-                          <Link
-                            href="/products?category=Khun Irkal"
-                            className="group flex flex-col items-center flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40"
-                            data-testid="category-khun-irkal"
-                          >
-                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 shadow-md group-hover:shadow-xl">
-                              <img
-                                src={khunIrkalImage}
-                                alt="Khun / Irkal (Ilkal)"
-                                className="hidden w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                            <div className="mt-2 md:mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white bg-pink-500 px-2 sm:px-3 md:px-4 py-1 md:py-1.5 rounded-full inline-block whitespace-nowrap">
-                                Khun / Irkal (Ilkal)
-                              </span>
-                            </div>
-                          </Link>
-                          <Link
-                            href="/products?category=Ajrakh Modal"
-                            className="group flex flex-col items-center flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40"
-                            data-testid="category-ajrakh-modal"
-                          >
-                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 shadow-md group-hover:shadow-xl">
-                              <img
-                                src={ajrakhModalImage}
-                                alt="Ajrakh Modal"
-                                className="hidden w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                            <div className="mt-2 md:mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white bg-pink-500 px-2 sm:px-3 md:px-4 py-1 md:py-1.5 rounded-full inline-block whitespace-nowrap">
-                                Ajrakh Modal
-                              </span>
-                            </div>
-                          </Link>
-                          <Link
-                            href="/products?category=Mul Mul Cotton"
-                            className="group flex flex-col items-center flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40"
-                            data-testid="category-mul-mul-cotton"
-                          >
-                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 shadow-md group-hover:shadow-xl">
-                              <img
-                                src={mulCottonImage}
-                                alt="Mul Mul Cotton"
-                                className="hidden w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                            <div className="mt-2 md:mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white bg-pink-500 px-2 sm:px-3 md:px-4 py-1 md:py-1.5 rounded-full inline-block whitespace-nowrap">
-                                Mul Mul Cotton
-                              </span>
-                            </div>
-                          </Link>
-                          <Link
-                            href="/products?category=Khadi Cotton"
-                            className="group flex flex-col items-center flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40"
-                            data-testid="category-khadi-cotton"
-                          >
-                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 shadow-md group-hover:shadow-xl">
-                              <img
-                                src={khadiCottonImage}
-                                alt="Khadi Cotton"
-                                className="hidden w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                            <div className="mt-2 md:mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white bg-pink-500 px-2 sm:px-3 md:px-4 py-1 md:py-1.5 rounded-full inline-block whitespace-nowrap">
-                                Khadi Cotton
-                              </span>
-                            </div>
-                          </Link>
-                          <Link
-                            href="/products?category=Patch Work"
-                            className="group flex flex-col items-center flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40"
-                            data-testid="category-patch-work"
-                          >
-                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 shadow-md group-hover:shadow-xl">
-                              <img
-                                src={patchWorkImage}
-                                alt="Patch Work"
-                                className="hidden w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                            <div className="mt-2 md:mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white bg-pink-500 px-2 sm:px-3 md:px-4 py-1 md:py-1.5 rounded-full inline-block whitespace-nowrap">
-                                Patch Work
-                              </span>
-                            </div>
-                          </Link>
-                          <Link
-                            href="/products?category=Pure Linen"
-                            className="group flex flex-col items-center flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40"
-                            data-testid="category-pure-linen"
-                          >
-                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg border-2 border-transparent group-hover:border-pink-500 transition-all duration-300 shadow-md group-hover:shadow-xl">
-                              <img
-                                src={pureLinenImage}
-                                alt="Pure Linen"
-                                className="hidden w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                            <div className="mt-2 md:mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white bg-pink-500 px-2 sm:px-3 md:px-4 py-1 md:py-1.5 rounded-full inline-block whitespace-nowrap">
-                                Pure Linen
-                              </span>
-                            </div>
-                          </Link>
-                        </div>
+                    <NavigationMenuContent className="!w-auto min-w-[180px]">
+                      <div className="flex" onMouseLeave={() => setHoveredMainCategory(null)}>
+                        {/* First level: 4 main categories */}
+                        <ul className="py-2 min-w-[180px]">
+                          {CATEGORY_MENU.map((cat) => (
+                            <li
+                              key={cat.label}
+                              className={`flex items-center justify-between px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors whitespace-nowrap ${hoveredMainCategory === cat.label ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-pink-50 hover:text-pink-600"}`}
+                              onMouseEnter={() => setHoveredMainCategory(cat.label)}
+                              onClick={() => {
+                                if (cat.subCategories.length === 0) {
+                                  setLocation(`/products?${cat.param}`);
+                                }
+                              }}
+                              data-testid={`category-main-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                            >
+                              <span>{cat.label}</span>
+                              {cat.subCategories.length > 0 && (
+                                <ChevronRight className="h-4 w-4 ml-3 text-gray-400" />
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* Second level: sub-categories */}
+                        {hoveredMainCategory && CATEGORY_MENU.find(c => c.label === hoveredMainCategory)?.subCategories.length ? (
+                          <ul className="py-2 min-w-[200px] border-l border-gray-100 bg-white">
+                            {CATEGORY_MENU.find(c => c.label === hoveredMainCategory)!.subCategories.map((sub) => (
+                              <li key={sub.label}>
+                                <Link
+                                  href={`/products?${sub.param}`}
+                                  className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-colors whitespace-nowrap"
+                                  data-testid={`category-sub-${sub.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  {sub.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
                       </div>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
@@ -778,63 +724,46 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                   <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${categoriesOpen ? "rotate-90" : ""}`} />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pb-2">
-                  <div className="flex flex-col gap-1 pl-4 pr-3">
-                    <Link
-                      href="/products?category=Jamdani Paithani"
-                      className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid="mobile-category-jamdani"
-                    >
-                      Jamdani Paithani
-                    </Link>
-                    <Link
-                      href="/products?category=Khun Irkal"
-                      className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid="mobile-category-khun"
-                    >
-                      Khun / Irkal (Ilkal)
-                    </Link>
-                    <Link
-                      href="/products?category=Ajrakh Modal"
-                      className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid="mobile-category-ajrakh"
-                    >
-                      Ajrakh Modal
-                    </Link>
-                    <Link
-                      href="/products?category=Mul Mul Cotton"
-                      className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid="mobile-category-mul"
-                    >
-                      Mul Mul Cotton
-                    </Link>
-                    <Link
-                      href="/products?category=Khadi Cotton"
-                      className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid="mobile-category-khadi"
-                    >
-                      Khadi Cotton
-                    </Link>
-                    <Link
-                      href="/products?category=Patch Work"
-                      className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid="mobile-category-patch"
-                    >
-                      Patch Work
-                    </Link>
-                    <Link
-                      href="/products?category=Pure Linen"
-                      className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid="mobile-category-linen"
-                    >
-                      Pure Linen
-                    </Link>
+                  <div className="flex flex-col gap-1 pl-2 pr-3">
+                    {CATEGORY_MENU.map((cat) => (
+                      cat.subCategories.length === 0 ? (
+                        <Link
+                          key={cat.label}
+                          href={`/products?${cat.param}`}
+                          className="text-sm py-2.5 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground font-medium"
+                          onClick={() => setMobileMenuOpen(false)}
+                          data-testid={`mobile-category-main-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          {cat.label}
+                        </Link>
+                      ) : (
+                        <Collapsible
+                          key={cat.label}
+                          open={openMobileSubCategory === cat.label}
+                          onOpenChange={(open) => setOpenMobileSubCategory(open ? cat.label : null)}
+                        >
+                          <CollapsibleTrigger className="flex items-center justify-between w-full py-2.5 px-4 rounded-md text-sm font-medium hover-elevate transition-colors text-muted-foreground hover:text-foreground">
+                            <span>{cat.label}</span>
+                            <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${openMobileSubCategory === cat.label ? "rotate-90" : ""}`} />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="flex flex-col gap-0.5 pl-4 pr-2 pb-1">
+                              {cat.subCategories.map((sub) => (
+                                <Link
+                                  key={sub.label}
+                                  href={`/products?${sub.param}`}
+                                  className="text-xs py-2 px-4 block rounded-md hover-elevate transition-colors text-muted-foreground hover:text-foreground"
+                                  onClick={() => setMobileMenuOpen(false)}
+                                  data-testid={`mobile-category-sub-${sub.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  {sub.label}
+                                </Link>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )
+                    ))}
                   </div>
                 </CollapsibleContent>
               </Collapsible>
