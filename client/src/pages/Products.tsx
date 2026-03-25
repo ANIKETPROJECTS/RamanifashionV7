@@ -17,6 +17,22 @@ import { motion } from "framer-motion";
 import { colorPreferences } from "@/lib/colorPreferences";
 import { extractUniqueColorsFromProducts, getColorCssValue } from "@/lib/colorUtils";
 
+interface ApiSubCategory {
+  name: string;
+  slug: string;
+  image: string;
+  subCategories: ApiSubCategory[];
+}
+
+interface ApiCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  image: string;
+  subCategories: ApiSubCategory[];
+  order: number;
+}
+
 export default function Products() {
   const [location] = useLocation();
   const searchString = useSearch();
@@ -32,11 +48,62 @@ export default function Products() {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
   const [isTrending, setIsTrending] = useState(false);
+  const [mainCategoryParam, setMainCategoryParam] = useState<string>("");
   const [openSections, setOpenSections] = useState<string[]>(["categories", "price", "color"]);
+
+  // Fetch the full category tree
+  const { data: apiCategories } = useQuery<ApiCategory[]>({
+    queryKey: ["/api/categories"],
+  });
+
+  // Find the active main category based on URL params
+  const activeMainCategory = useMemo(() => {
+    if (!apiCategories) return null;
+    if (mainCategoryParam) {
+      return apiCategories.find(
+        (c) => c.name.toLowerCase() === mainCategoryParam.toLowerCase()
+      ) || null;
+    }
+    // If subcategory is selected, find its parent main category
+    if (selectedCategories.length > 0) {
+      return apiCategories.find((c) =>
+        c.subCategories.some((sub) => selectedCategories.includes(sub.name))
+      ) || null;
+    }
+    return null;
+  }, [apiCategories, mainCategoryParam, selectedCategories]);
+
+  // Subcategories to show in the filter sidebar
+  const filterableSubcategories = useMemo(() => {
+    if (activeMainCategory && activeMainCategory.subCategories.length > 0) {
+      return activeMainCategory.subCategories.map((s) => s.name);
+    }
+    return null; // null means "use the generic list from /api/filters"
+  }, [activeMainCategory]);
+
+  // When mainCategory is selected from URL, gather all its subcategory names
+  // so we can pass them to the products API as a category filter
+  const mainCategorySubcategoryNames = useMemo(() => {
+    if (activeMainCategory && mainCategoryParam) {
+      return activeMainCategory.subCategories.map((s) => s.name);
+    }
+    return [];
+  }, [activeMainCategory, mainCategoryParam]);
+
+  // Dynamic page title
+  const pageTitle = useMemo(() => {
+    if (selectedCategories.length === 1) return selectedCategories[0];
+    if (selectedCategories.length > 1) return "Multiple Categories";
+    if (activeMainCategory) return `All ${activeMainCategory.name.charAt(0) + activeMainCategory.name.slice(1).toLowerCase()}`;
+    return "All Products";
+  }, [selectedCategories, activeMainCategory]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(searchString);
     
+    const mainCat = urlParams.get('mainCategory');
+    setMainCategoryParam(mainCat || "");
+
     const categoryParam = urlParams.get('category');
     setSelectedCategories(categoryParam ? categoryParam.split(',') : []);
     
@@ -81,8 +148,14 @@ export default function Products() {
     queryParams.append("order", order);
   }
 
-  if (selectedCategories.length > 0) {
-    queryParams.append("category", selectedCategories.join(","));
+  // If a mainCategory is selected (without specific subcategories), filter by all its subcategories
+  // Otherwise use the explicitly selected subcategories
+  const effectiveCategories = selectedCategories.length > 0
+    ? selectedCategories
+    : mainCategorySubcategoryNames;
+
+  if (effectiveCategories.length > 0) {
+    queryParams.append("category", effectiveCategories.join(","));
   }
   if (selectedFabrics.length > 0) {
     queryParams.append("fabric", selectedFabrics.join(","));
@@ -117,8 +190,8 @@ export default function Products() {
 
   // Build price range query params (without page/limit/price)
   const priceRangeParams = new URLSearchParams();
-  if (selectedCategories.length > 0) {
-    priceRangeParams.append("category", selectedCategories.join(","));
+  if (effectiveCategories.length > 0) {
+    priceRangeParams.append("category", effectiveCategories.join(","));
   }
   if (selectedFabrics.length > 0) {
     priceRangeParams.append("fabric", selectedFabrics.join(","));
@@ -155,7 +228,8 @@ export default function Products() {
   const products = productsData?.products || [];
   const pagination = productsData?.pagination || { total: 0, pages: 1 };
 
-  const categories = filtersData?.categories || ["Jamdani Paithani", "Khun / Irkal (Ilkal)", "Ajrakh Modal", "Mul Mul Cotton", "Khadi Cotton", "Patch Work", "Pure Linen"];
+  // Use subcategories of the active main category if available, else fall back to all DB categories
+  const categories = filterableSubcategories ?? filtersData?.categories ?? ["Jamdani Paithani", "Khun / Irkal (Ilkal)", "Ajrakh Modal", "Mul Mul Cotton", "Khadi Cotton", "Patch Work", "Pure Linen"];
   const fabrics = filtersData?.fabrics || ["Silk", "Cotton", "Georgette", "Chiffon", "Net", "Crepe", "Chanderi", "Linen"];
   const occasions = filtersData?.occasions || ["Wedding", "Party", "Festival", "Casual", "Office"];
   
@@ -224,14 +298,35 @@ export default function Products() {
         <div className="mb-6">
           <nav className="text-sm text-muted-foreground mb-4" data-testid="breadcrumb">
             <a href="/" className="hover:text-foreground">Home</a>
-            <span className="mx-2">/</span>
-            <span className="text-foreground">All Sarees</span>
+            {activeMainCategory && (
+              <>
+                <span className="mx-2">/</span>
+                <a
+                  href={`/products?mainCategory=${encodeURIComponent(activeMainCategory.name)}`}
+                  className={`hover:text-foreground ${!selectedCategories.length ? "text-foreground" : ""}`}
+                >
+                  {activeMainCategory.name.charAt(0) + activeMainCategory.name.slice(1).toLowerCase()}
+                </a>
+              </>
+            )}
+            {selectedCategories.length === 1 && (
+              <>
+                <span className="mx-2">/</span>
+                <span className="text-foreground">{selectedCategories[0]}</span>
+              </>
+            )}
+            {!activeMainCategory && !selectedCategories.length && (
+              <>
+                <span className="mx-2">/</span>
+                <span className="text-foreground">All Products</span>
+              </>
+            )}
           </nav>
           
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <h1 className="text-2xl font-bold mb-1" data-testid="text-page-title">
-                All Sarees
+                {pageTitle}
               </h1>
               <p className="text-muted-foreground" data-testid="text-results-count">
                 {pagination.total} products
