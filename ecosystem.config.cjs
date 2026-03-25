@@ -4,7 +4,7 @@ module.exports = {
     script: './dist/index.js',
     env: {
       NODE_ENV: 'production',
-      MONGODB_URI: 'mongodb+srv://ramanifashion2026_db_user:Fvgh6aJF8YK6R9rQ@ramanifashion.tknlkyl.mongodb.net/?appName=ramanifashion',
+      MONGODB_URI: 'mongodb+srv://raneaniket23_db_user:heO5JZLpHHdbgiMW@ramanifashion.xcxqbd7.mongodb.net/?appName=ramanifashion',
       PORT: '5000',
       WHATSAPP_API_KEY: '7RlFwj57xE6wHngTfSmNHA',
       WHATSAPP_PHONE_NUMBER_ID: '919970127778',
