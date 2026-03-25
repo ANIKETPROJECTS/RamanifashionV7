@@ -1,5 +1,5 @@
 import { connectDB } from './db';
-import { Product, Settings, AdminUser } from './models';
+import { Product, Settings, AdminUser, Category } from './models';
 import bcrypt from 'bcryptjs';
 
 const sampleProducts = [
@@ -558,6 +558,67 @@ export async function seedDatabase() {
       console.log('✅ Admin user created:', adminEmail);
     } else {
       console.log('✅ Admin user already exists:', adminEmail);
+    }
+
+    // Seed categories if not already present
+    const categoryCount = await Category.countDocuments();
+    if (categoryCount === 0) {
+      console.log('🌱 Seeding categories...');
+      await Category.insertMany([
+        {
+          name: 'SAREES',
+          slug: 'sarees',
+          image: '/attached_assets/generated_images/category_sarees.png',
+          order: 1,
+          isActive: true,
+          subCategories: [
+            { name: 'Jamdani Paithani', slug: 'jamdani-paithani', image: '', subCategories: [] },
+            { name: 'Khun / Irkal (Ilkal)', slug: 'khun-irkal', image: '', subCategories: [] },
+            { name: 'Ajrakh Modal', slug: 'ajrakh-modal', image: '', subCategories: [] },
+            { name: 'Mul Mul Cotton', slug: 'mul-mul-cotton', image: '', subCategories: [] },
+            { name: 'Khadi Cotton', slug: 'khadi-cotton', image: '', subCategories: [] },
+            { name: 'Patch Work', slug: 'patch-work', image: '', subCategories: [] },
+            { name: 'Pure Linen', slug: 'pure-linen', image: '', subCategories: [] },
+          ],
+        },
+        {
+          name: 'BLOUSES',
+          slug: 'blouses',
+          image: '/attached_assets/generated_images/category_blouses.png',
+          order: 2,
+          isActive: true,
+          subCategories: [
+            { name: 'Designer Blouses', slug: 'designer-blouses', image: '', subCategories: [] },
+            { name: 'Plain Blouses', slug: 'plain-blouses', image: '', subCategories: [] },
+            { name: 'Embroidered Blouses', slug: 'embroidered-blouses', image: '', subCategories: [] },
+            { name: 'Ready-made Blouses', slug: 'ready-made-blouses', image: '', subCategories: [] },
+          ],
+        },
+        {
+          name: 'DRESS MATERIALS',
+          slug: 'dress-materials',
+          image: '/attached_assets/generated_images/category_dress_materials.png',
+          order: 3,
+          isActive: true,
+          subCategories: [
+            { name: 'Cotton Dress Materials', slug: 'cotton-dress-materials', image: '', subCategories: [] },
+            { name: 'Silk Dress Materials', slug: 'silk-dress-materials', image: '', subCategories: [] },
+            { name: 'Linen Dress Materials', slug: 'linen-dress-materials', image: '', subCategories: [] },
+            { name: 'Printed Dress Materials', slug: 'printed-dress-materials', image: '', subCategories: [] },
+          ],
+        },
+        {
+          name: 'JEWELLERY',
+          slug: 'jewellery',
+          image: '/attached_assets/generated_images/category_jewellery.png',
+          order: 4,
+          isActive: true,
+          subCategories: [],
+        },
+      ]);
+      console.log('✅ Categories seeded: SAREES, BLOUSES, DRESS MATERIALS, JEWELLERY');
+    } else {
+      console.log(`✅ Categories already exist (${categoryCount} documents)`);
     }
 
     const count = await Product.countDocuments();

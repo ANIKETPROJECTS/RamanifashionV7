@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { connectDB } from "./db";
-import { Product, User, Customer, Cart, Wishlist, Order, Address, ContactSubmission, OTP, Review, Settings, AdminUser } from "./models";
+import { Product, User, Customer, Cart, Wishlist, Order, Address, ContactSubmission, OTP, Review, Settings, AdminUser, Category } from "./models";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -65,6 +65,63 @@ function authenticateAdmin(req: Request, res: Response, next: NextFunction) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Connect to MongoDB
   await connectDB();
+
+  // ── Category Routes ──────────────────────────────────────────
+  // GET all active categories (with full sub-category tree)
+  app.get("/api/categories", async (_req, res) => {
+    try {
+      const categories = await Category.find({ isActive: true }).sort({ order: 1 });
+      res.json(categories);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  // GET a single category by slug
+  app.get("/api/categories/:slug", async (req, res) => {
+    try {
+      const category = await Category.findOne({ slug: req.params.slug, isActive: true });
+      if (!category) return res.status(404).json({ error: "Category not found" });
+      res.json(category);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch category" });
+    }
+  });
+
+  // POST create a category (admin)
+  app.post("/api/admin/categories", authenticateAdmin, async (req, res) => {
+    try {
+      const category = await Category.create(req.body);
+      res.status(201).json(category);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // PUT update a category (admin)
+  app.put("/api/admin/categories/:id", authenticateAdmin, async (req, res) => {
+    try {
+      const category = await Category.findByIdAndUpdate(
+        req.params.id,
+        { ...req.body, updatedAt: new Date() },
+        { new: true }
+      );
+      if (!category) return res.status(404).json({ error: "Category not found" });
+      res.json(category);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // DELETE a category (admin)
+  app.delete("/api/admin/categories/:id", authenticateAdmin, async (req, res) => {
+    try {
+      await Category.findByIdAndDelete(req.params.id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to delete category" });
+    }
+  });
 
   // Product Routes
   app.get("/api/products", async (req, res) => {

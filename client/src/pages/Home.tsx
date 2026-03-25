@@ -52,10 +52,6 @@ import khadiCottonImage from "@/assets/khadi-cotton.png";
 import patchWorkImage from "@/assets/patch-work.png";
 import pureLinenImage from "@/assets/pure-linen.png";
 import saleImage from "@/assets/sale.png";
-import catSareesImage from "@assets/generated_images/category_sarees.png";
-import catBlousesImage from "@assets/generated_images/category_blouses.png";
-import catDressMaterialsImage from "@assets/generated_images/category_dress_materials.png";
-import catJewelleryImage from "@assets/generated_images/category_jewellery.png";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -103,8 +99,13 @@ export default function Home() {
     queryKey: ["/api/products?isTrending=true&limit=6"],
   });
 
+  const { data: categoriesData } = useQuery<any[]>({
+    queryKey: ["/api/categories"],
+  });
+
   const newArrivals = (newArrivalsData as any)?.products || [];
   const trendingProducts = (trendingData as any)?.products || [];
+  const shopCategories = categoriesData ?? [];
 
   const contactForm = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -358,30 +359,29 @@ export default function Home() {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {[
-                { label: "SAREES", image: catSareesImage, param: "mainCategory=Sarees" },
-                { label: "BLOUSES", image: catBlousesImage, param: "mainCategory=Blouses" },
-                { label: "DRESS MATERIALS", image: catDressMaterialsImage, param: "mainCategory=Dress Materials" },
-                { label: "JEWELLERY", image: catJewelleryImage, param: "mainCategory=Jewellery" },
-              ].map((cat) => (
+              {shopCategories.map((cat: any) => (
                 <motion.div
-                  key={cat.label}
+                  key={cat._id}
                   variants={fadeInUp}
                   transition={{ duration: 0.5 }}
                   className="group cursor-pointer"
-                  onClick={() => setLocation(`/products?${cat.param}`)}
-                  data-testid={`card-shop-category-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  onClick={() => setLocation(`/products?mainCategory=${encodeURIComponent(cat.name)}`)}
+                  data-testid={`card-shop-category-${cat.slug}`}
                 >
                   <div className="relative overflow-hidden rounded-2xl shadow-md group-hover:shadow-xl transition-shadow duration-300 aspect-[3/4]">
-                    <img
-                      src={cat.image}
-                      alt={cat.label}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    {cat.image ? (
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-pink-100 to-pink-300" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <h3 className="text-white font-bold text-base md:text-lg tracking-wide text-center drop-shadow-lg">
-                        {cat.label}
+                        {cat.name}
                       </h3>
                       <p className="text-white/80 text-xs text-center mt-1 font-medium tracking-wider">
                         EXPLORE →

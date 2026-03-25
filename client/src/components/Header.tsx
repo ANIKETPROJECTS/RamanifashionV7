@@ -57,46 +57,27 @@ interface SearchProduct {
   displayImage: string;
 }
 
-const CATEGORY_MENU = [
-  {
-    label: "SAREES",
-    param: "mainCategory=Sarees",
-    subCategories: [
-      { label: "Jamdani Paithani", param: "category=Jamdani Paithani" },
-      { label: "Khun / Irkal (Ilkal)", param: "category=Khun Irkal" },
-      { label: "Ajrakh Modal", param: "category=Ajrakh Modal" },
-      { label: "Mul Mul Cotton", param: "category=Mul Mul Cotton" },
-      { label: "Khadi Cotton", param: "category=Khadi Cotton" },
-      { label: "Patch Work", param: "category=Patch Work" },
-      { label: "Pure Linen", param: "category=Pure Linen" },
-    ],
-  },
-  {
-    label: "BLOUSES",
-    param: "mainCategory=Blouses",
-    subCategories: [
-      { label: "Designer Blouses", param: "category=Designer Blouses" },
-      { label: "Plain Blouses", param: "category=Plain Blouses" },
-      { label: "Embroidered Blouses", param: "category=Embroidered Blouses" },
-      { label: "Ready-made Blouses", param: "category=Ready-made Blouses" },
-    ],
-  },
-  {
-    label: "DRESS MATERIALS",
-    param: "mainCategory=Dress Materials",
-    subCategories: [
-      { label: "Cotton Dress Materials", param: "category=Cotton Dress Materials" },
-      { label: "Silk Dress Materials", param: "category=Silk Dress Materials" },
-      { label: "Linen Dress Materials", param: "category=Linen Dress Materials" },
-      { label: "Printed Dress Materials", param: "category=Printed Dress Materials" },
-    ],
-  },
-  {
-    label: "JEWELLERY",
-    param: "mainCategory=Jewellery",
-    subCategories: [],
-  },
-];
+interface ApiSubCategory {
+  name: string;
+  slug: string;
+  image: string;
+  subCategories: ApiSubCategory[];
+}
+
+interface ApiCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  image: string;
+  subCategories: ApiSubCategory[];
+  order: number;
+}
+
+interface CategoryMenuItem {
+  label: string;
+  param: string;
+  subCategories: { label: string; param: string }[];
+}
 
 export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,6 +89,21 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
   const [openMobileSubCategory, setOpenMobileSubCategory] = useState<string | null>(null);
   const [hoveredMainCategory, setHoveredMainCategory] = useState<string | null>(null);
   const { isLoginOpen, openLogin, closeLogin } = useAuthUI();
+
+  // Fetch categories from API
+  const { data: apiCategories } = useQuery<ApiCategory[]>({
+    queryKey: ["/api/categories"],
+  });
+
+  // Map API categories → dropdown menu format
+  const categoryMenu: CategoryMenuItem[] = (apiCategories ?? []).map((cat) => ({
+    label: cat.name,
+    param: `mainCategory=${encodeURIComponent(cat.name)}`,
+    subCategories: cat.subCategories.map((sub) => ({
+      label: sub.name,
+      param: `category=${encodeURIComponent(sub.name)}`,
+    })),
+  }));
   
   // Search dropdown state
   const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
@@ -432,11 +428,11 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                       </button>
 
                       {/* Dropdown panel – absolutely anchored below the trigger */}
-                      {hoveredMainCategory !== null && (
+                      {hoveredMainCategory !== null && categoryMenu.length > 0 && (
                         <div className="absolute left-0 top-full z-50 flex shadow-lg border border-gray-100 rounded-md bg-white overflow-hidden">
                           {/* Level 1: main categories */}
                           <ul className="py-2 min-w-[180px]">
-                            {CATEGORY_MENU.map((cat) => (
+                            {categoryMenu.map((cat) => (
                               <li
                                 key={cat.label}
                                 className={`flex items-center justify-between px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors whitespace-nowrap ${hoveredMainCategory === cat.label ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-pink-50 hover:text-pink-600"}`}
@@ -458,9 +454,9 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                           </ul>
 
                           {/* Level 2: sub-categories, shown when a parent is hovered */}
-                          {hoveredMainCategory && hoveredMainCategory !== "__open__" && CATEGORY_MENU.find(c => c.label === hoveredMainCategory)?.subCategories.length ? (
+                          {hoveredMainCategory && hoveredMainCategory !== "__open__" && categoryMenu.find(c => c.label === hoveredMainCategory)?.subCategories.length ? (
                             <ul className="py-2 min-w-[210px] border-l border-gray-100 bg-white">
-                              {CATEGORY_MENU.find(c => c.label === hoveredMainCategory)!.subCategories.map((sub) => (
+                              {categoryMenu.find(c => c.label === hoveredMainCategory)!.subCategories.map((sub) => (
                                 <li key={sub.label}>
                                   <Link
                                     href={`/products?${sub.param}`}
@@ -736,7 +732,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pb-2">
                   <div className="flex flex-col gap-1 pl-2 pr-3">
-                    {CATEGORY_MENU.map((cat) => (
+                    {categoryMenu.map((cat) => (
                       cat.subCategories.length === 0 ? (
                         <Link
                           key={cat.label}

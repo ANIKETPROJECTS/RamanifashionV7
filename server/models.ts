@@ -425,8 +425,22 @@ const adminUserSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Category Schema – supports unlimited recursive sub-category nesting via Mixed
+const categorySchema = new Schema({
+  name: { type: String, required: true, unique: true },
+  slug: { type: String, required: true, unique: true },
+  image: { type: String, default: '' },
+  // Each element here is a plain object with the same shape (name, slug, image, subCategories[])
+  subCategories: { type: [Schema.Types.Mixed], default: [] },
+  order: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
 // Export models
 export const AdminUser = mongoose.models.AdminUser || mongoose.model('AdminUser', adminUserSchema);
+export const Category = mongoose.models.Category || mongoose.model('Category', categorySchema);
 export const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 export const User = mongoose.models.User || mongoose.model('User', userSchema);
 export const Customer = mongoose.models.Customer || mongoose.model('Customer', customerSchema);
