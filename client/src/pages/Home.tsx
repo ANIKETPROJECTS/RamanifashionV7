@@ -147,16 +147,40 @@ export default function Home() {
     contactMutation.mutate(data);
   };
 
+  // Build a lookup of subcategory name → API image URL (from admin-managed categories)
+  const subCategoryImageMap = new Map<string, string>();
+  (categoriesData ?? []).forEach((cat: any) => {
+    (cat.subCategories || []).forEach((sub: any) => {
+      if (sub.name && sub.image) {
+        subCategoryImageMap.set(sub.name, sub.image);
+      }
+    });
+  });
+
+  const staticFallbacks: Record<string, string> = {
+    "Jamdani Paithani": paithaniImage,
+    "Khun / Irkal (Ilkal)": khunIrkalImage,
+    "Ajrakh Modal": ajrakhModalImage,
+    "Mul Mul Cotton": mulCottonImage,
+    "Khadi Cotton": khadiCottonImage,
+    "Patch Work": patchWorkImage,
+    "Pure Linen": pureLinenImage,
+    "Sale": saleImage,
+  };
+
   const newCategories = [
-    { name: "Jamdani Paithani", image: paithaniImage },
-    { name: "Khun / Irkal (Ilkal)", image: khunIrkalImage },
-    { name: "Ajrakh Modal", image: ajrakhModalImage },
-    { name: "Mul Mul Cotton", image: mulCottonImage },
-    { name: "Khadi Cotton", image: khadiCottonImage },
-    { name: "Patch Work", image: patchWorkImage },
-    { name: "Pure Linen", image: pureLinenImage },
-    { name: "Sale", image: saleImage },
-  ];
+    "Jamdani Paithani",
+    "Khun / Irkal (Ilkal)",
+    "Ajrakh Modal",
+    "Mul Mul Cotton",
+    "Khadi Cotton",
+    "Patch Work",
+    "Pure Linen",
+    "Sale",
+  ].map((name) => ({
+    name,
+    image: subCategoryImageMap.get(name) || staticFallbacks[name] || "",
+  }));
 
   const collections = [
     {
@@ -315,7 +339,7 @@ export default function Home() {
                           <img
                             src={category.image}
                             alt={category.name}
-                            className="hidden w-full h-full object-cover"
+                            className="w-full h-full object-cover"
                           />
                         </div>
                       </div>
