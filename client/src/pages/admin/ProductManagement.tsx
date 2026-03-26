@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,9 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ColorVariantEditor, ColorVariant } from "@/components/ColorVariantEditor";
 import { 
-  Upload,
   Download,
-  FileUp
+  FileUp,
+  Check
 } from "lucide-react";
 
 const AVAILABLE_COLORS = [
@@ -24,6 +24,25 @@ const AVAILABLE_COLORS = [
   "Navy", "Turquoise", "Magenta", "Cream", "Burgundy", "Peach", "Lavender"
 ];
 
+interface SubCategory {
+  name: string;
+  slug: string;
+}
+
+interface MainCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  subCategories: SubCategory[];
+}
+
+const CATEGORY_ICONS: Record<string, string> = {
+  SAREES: "🥻",
+  BLOUSES: "👗",
+  "DRESS MATERIALS": "🧵",
+  JEWELLERY: "💍",
+};
+
 export default function ProductManagement() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -31,6 +50,10 @@ export default function ProductManagement() {
   const excelImportRef = useRef<HTMLInputElement>(null);
 
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([]);
+
+  const { data: mainCategories = [] } = useQuery<MainCategory[]>({
+    queryKey: ["/api/categories"],
+  });
 
   const [productForm, setProductForm] = useState({
     name: "",
@@ -149,6 +172,13 @@ export default function ProductManagement() {
     }
   });
 
+  const [selectedMainCategory, setSelectedMainCategory] = useState<MainCategory | null>(null);
+
+  const handleMainCategorySelect = (cat: MainCategory) => {
+    setSelectedMainCategory(cat);
+    setProductForm(prev => ({ ...prev, category: cat.name, subcategory: "" }));
+  };
+
   const resetForm = () => {
     setProductForm({
       name: "",
@@ -174,10 +204,20 @@ export default function ProductManagement() {
       countryOfOrigin: ""
     });
     setColorVariants([]);
+    setSelectedMainCategory(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!productForm.category) {
+      toast({
+        title: "Please select a category",
+        description: "Click one of the main category cards to continue",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (colorVariants.length === 0) {
       toast({ 
@@ -290,6 +330,69 @@ export default function ProductManagement() {
                 adminToken={adminToken}
               />
 
+              {/* Step 1: Main Category Selection */}
+              <div className="space-y-3">
+                <Label data-testid="label-main-category">Main Category *</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {mainCategories.map((cat) => {
+                    const isSelected = selectedMainCategory?._id === cat._id;
+                    return (
+                      <button
+                        key={cat._id}
+                        type="button"
+                        onClick={() => handleMainCategorySelect(cat)}
+                        data-testid={`button-category-${cat.slug}`}
+                        className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 p-4 text-center transition-all cursor-pointer
+                          ${isSelected
+                            ? "border-pink-500 bg-pink-50 dark:bg-pink-950/30 shadow-md"
+                            : "border-gray-200 dark:border-gray-700 hover:border-pink-300 hover:bg-pink-50/50 dark:hover:bg-pink-950/10"
+                          }`}
+                      >
+                        {isSelected && (
+                          <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500">
+                            <Check className="h-3 w-3 text-white" />
+                          </span>
+                        )}
+                        <span className="text-3xl">{CATEGORY_ICONS[cat.name] ?? "🏷️"}</span>
+                        <span className={`text-sm font-semibold leading-tight ${isSelected ? "text-pink-600 dark:text-pink-400" : "text-gray-700 dark:text-gray-300"}`}>
+                          {cat.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step 2: Subcategory Selection */}
+              {selectedMainCategory && selectedMainCategory.subCategories.length > 0 && (
+                <div className="space-y-3">
+                  <Label data-testid="label-subcategory">Subcategory <span className="text-gray-400 font-normal">(optional)</span></Label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedMainCategory.subCategories.map((sub) => {
+                      const isSelected = productForm.subcategory === sub.name;
+                      return (
+                        <button
+                          key={sub.slug}
+                          type="button"
+                          onClick={() => setProductForm(prev => ({
+                            ...prev,
+                            subcategory: isSelected ? "" : sub.name
+                          }))}
+                          data-testid={`button-subcategory-${sub.slug}`}
+                          className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all
+                            ${isSelected
+                              ? "border-pink-500 bg-pink-500 text-white shadow"
+                              : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-pink-400 hover:text-pink-600"
+                            }`}
+                        >
+                          {sub.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name" data-testid="label-product-name">Product Name *</Label>
@@ -300,24 +403,6 @@ export default function ProductManagement() {
                     required
                     data-testid="input-product-name"
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category" data-testid="label-category">Category *</Label>
-                  <Select value={productForm.category} onValueChange={(value) => setProductForm({...productForm, category: value})}>
-                    <SelectTrigger data-testid="select-category">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Jamdani Paithani" data-testid="option-jamdani-paithani">Jamdani Paithani</SelectItem>
-                      <SelectItem value="Khun Irkal" data-testid="option-khun-irkal">Khun / Irkal (Ilkal)</SelectItem>
-                      <SelectItem value="Ajrakh Modal" data-testid="option-ajrakh-modal">Ajrakh Modal</SelectItem>
-                      <SelectItem value="Mul Mul Cotton" data-testid="option-mul-mul-cotton">Mul Mul Cotton</SelectItem>
-                      <SelectItem value="Khadi Cotton" data-testid="option-khadi-cotton">Khadi Cotton</SelectItem>
-                      <SelectItem value="Patch Work" data-testid="option-patch-work">Patch Work</SelectItem>
-                      <SelectItem value="Pure Linen" data-testid="option-pure-linen">Pure Linen</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
