@@ -125,7 +125,11 @@ export default function ProductManagement() {
     dimensions: "",
     weight: "",
     careInstructions: "",
-    countryOfOrigin: ""
+    countryOfOrigin: "",
+    material: "",
+    plating: "",
+    stoneType: "",
+    setIncludes: "",
   });
 
 
@@ -265,7 +269,11 @@ export default function ProductManagement() {
       dimensions: "",
       weight: "",
       careInstructions: "",
-      countryOfOrigin: ""
+      countryOfOrigin: "",
+      material: "",
+      plating: "",
+      stoneType: "",
+      setIncludes: "",
     });
     setColorVariants([]);
     setSelectedMainCategory(null);
@@ -330,13 +338,22 @@ export default function ProductManagement() {
       isTrending: productForm.isTrending,
       isBestseller: productForm.isBestseller,
       onSale: productForm.onSale,
-      specifications: {
-        fabricComposition: productForm.fabricComposition || undefined,
-        dimensions: productForm.dimensions || undefined,
-        weight: productForm.weight || undefined,
-        careInstructions: productForm.careInstructions || undefined,
-        countryOfOrigin: productForm.countryOfOrigin || undefined,
-      }
+      specifications: productForm.category === "JEWELLERY"
+        ? {
+            material: productForm.material || undefined,
+            plating: productForm.plating || undefined,
+            stoneType: productForm.stoneType || undefined,
+            setIncludes: productForm.setIncludes || undefined,
+            weight: productForm.weight || undefined,
+            countryOfOrigin: productForm.countryOfOrigin || undefined,
+          }
+        : {
+            fabricComposition: productForm.fabricComposition || undefined,
+            dimensions: productForm.dimensions || undefined,
+            weight: productForm.weight || undefined,
+            careInstructions: productForm.careInstructions || undefined,
+            countryOfOrigin: productForm.countryOfOrigin || undefined,
+          }
     };
 
     addProductMutation.mutate(formattedData);
@@ -626,66 +643,139 @@ export default function ProductManagement() {
                 </div>
               </div>
 
-              <div className="space-y-4 border-t pt-4">
-                <h3 className="font-semibold text-sm">Product Specifications</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fabricComposition" data-testid="label-fabric-composition">Fabric Composition</Label>
-                    <Input
-                      id="fabricComposition"
-                      value={productForm.fabricComposition}
-                      onChange={(e) => setProductForm({...productForm, fabricComposition: e.target.value})}
-                      placeholder="e.g., 100% Cotton Silk"
-                      data-testid="input-fabric-composition"
-                    />
-                  </div>
+              {productForm.category === "JEWELLERY" ? (
+                <div className="space-y-4 border-t pt-4">
+                  <h3 className="font-semibold text-sm">Jewellery Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="material" data-testid="label-material">Material</Label>
+                      <Input
+                        id="material"
+                        value={productForm.material}
+                        onChange={(e) => setProductForm({...productForm, material: e.target.value})}
+                        placeholder="e.g., Gold, Silver, Brass, Alloy"
+                        data-testid="input-material"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="dimensions" data-testid="label-dimensions">Dimensions</Label>
-                    <Input
-                      id="dimensions"
-                      value={productForm.dimensions}
-                      onChange={(e) => setProductForm({...productForm, dimensions: e.target.value})}
-                      placeholder="e.g., 6 meters x 1.2 meters"
-                      data-testid="input-dimensions"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="plating" data-testid="label-plating">Plating / Finish</Label>
+                      <Input
+                        id="plating"
+                        value={productForm.plating}
+                        onChange={(e) => setProductForm({...productForm, plating: e.target.value})}
+                        placeholder="e.g., Gold Plated, Silver Plated, Rose Gold"
+                        data-testid="input-plating"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="weight" data-testid="label-weight">Weight</Label>
-                    <Input
-                      id="weight"
-                      value={productForm.weight}
-                      onChange={(e) => setProductForm({...productForm, weight: e.target.value})}
-                      placeholder="e.g., 380g"
-                      data-testid="input-weight"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stoneType" data-testid="label-stone-type">Stone / Gemstone</Label>
+                      <Input
+                        id="stoneType"
+                        value={productForm.stoneType}
+                        onChange={(e) => setProductForm({...productForm, stoneType: e.target.value})}
+                        placeholder="e.g., Kundan, Pearl, Ruby, No Stone"
+                        data-testid="input-stone-type"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="countryOfOrigin" data-testid="label-country-of-origin">Country of Origin</Label>
-                    <Input
-                      id="countryOfOrigin"
-                      value={productForm.countryOfOrigin}
-                      onChange={(e) => setProductForm({...productForm, countryOfOrigin: e.target.value})}
-                      placeholder="e.g., India"
-                      data-testid="input-country-of-origin"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weight" data-testid="label-weight">Weight</Label>
+                      <Input
+                        id="weight"
+                        value={productForm.weight}
+                        onChange={(e) => setProductForm({...productForm, weight: e.target.value})}
+                        placeholder="e.g., 45g"
+                        data-testid="input-weight"
+                      />
+                    </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="careInstructions" data-testid="label-care-instructions">Care Instructions</Label>
-                    <Textarea
-                      id="careInstructions"
-                      value={productForm.careInstructions}
-                      onChange={(e) => setProductForm({...productForm, careInstructions: e.target.value})}
-                      placeholder="e.g., Dry clean recommended"
-                      rows={2}
-                      data-testid="input-care-instructions"
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="countryOfOrigin" data-testid="label-country-of-origin">Country of Origin</Label>
+                      <Input
+                        id="countryOfOrigin"
+                        value={productForm.countryOfOrigin}
+                        onChange={(e) => setProductForm({...productForm, countryOfOrigin: e.target.value})}
+                        placeholder="e.g., India"
+                        data-testid="input-country-of-origin"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="setIncludes" data-testid="label-set-includes">Set Includes</Label>
+                      <Input
+                        id="setIncludes"
+                        value={productForm.setIncludes}
+                        onChange={(e) => setProductForm({...productForm, setIncludes: e.target.value})}
+                        placeholder="e.g., Necklace + Earrings + Maang Tikka"
+                        data-testid="input-set-includes"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : productForm.category ? (
+                <div className="space-y-4 border-t pt-4">
+                  <h3 className="font-semibold text-sm">Product Specifications</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fabricComposition" data-testid="label-fabric-composition">Fabric Composition</Label>
+                      <Input
+                        id="fabricComposition"
+                        value={productForm.fabricComposition}
+                        onChange={(e) => setProductForm({...productForm, fabricComposition: e.target.value})}
+                        placeholder="e.g., 100% Cotton Silk"
+                        data-testid="input-fabric-composition"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="dimensions" data-testid="label-dimensions">Dimensions</Label>
+                      <Input
+                        id="dimensions"
+                        value={productForm.dimensions}
+                        onChange={(e) => setProductForm({...productForm, dimensions: e.target.value})}
+                        placeholder="e.g., 6 meters x 1.2 meters"
+                        data-testid="input-dimensions"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="weight" data-testid="label-weight">Weight</Label>
+                      <Input
+                        id="weight"
+                        value={productForm.weight}
+                        onChange={(e) => setProductForm({...productForm, weight: e.target.value})}
+                        placeholder="e.g., 380g"
+                        data-testid="input-weight"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="countryOfOrigin" data-testid="label-country-of-origin">Country of Origin</Label>
+                      <Input
+                        id="countryOfOrigin"
+                        value={productForm.countryOfOrigin}
+                        onChange={(e) => setProductForm({...productForm, countryOfOrigin: e.target.value})}
+                        placeholder="e.g., India"
+                        data-testid="input-country-of-origin"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="careInstructions" data-testid="label-care-instructions">Care Instructions</Label>
+                      <Textarea
+                        id="careInstructions"
+                        value={productForm.careInstructions}
+                        onChange={(e) => setProductForm({...productForm, careInstructions: e.target.value})}
+                        placeholder="e.g., Dry clean recommended"
+                        rows={2}
+                        data-testid="input-care-instructions"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} data-testid="button-reset">
