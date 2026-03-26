@@ -38,7 +38,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Pencil, Trash2, Upload, X, Link as LinkIcon, Download, FileUp, CheckCircle, AlertCircle, SkipForward } from "lucide-react";
+import { Search, Pencil, Trash2, Upload, X, Link as LinkIcon, Download, FileUp, CheckCircle, AlertCircle, SkipForward, ChevronDown, ChevronRight } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function InventoryManagement() {
   const { toast } = useToast();
@@ -49,6 +50,8 @@ export default function InventoryManagement() {
   const [sortBy, setSortBy] = useState("stock");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStockStatus, setFilterStockStatus] = useState("all");
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [expandedMainCats, setExpandedMainCats] = useState<Set<string>>(new Set());
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingVariantIndex, setEditingVariantIndex] = useState<number>(-1);
@@ -104,6 +107,10 @@ export default function InventoryManagement() {
     queryKey: ["/api/admin/inventory"],
     enabled: !!adminToken,
     refetchInterval: 30000,
+  });
+
+  const { data: categoryTree } = useQuery<any[]>({
+    queryKey: ["/api/categories"],
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -448,7 +455,12 @@ export default function InventoryManagement() {
     }
 
     if (filterCategory !== "all") {
-      filtered = filtered.filter((p: any) => p.category === filterCategory);
+      if (filterCategory.includes("::")) {
+        const [mainCat, subCat] = filterCategory.split("::");
+        filtered = filtered.filter((p: any) => p.category === mainCat && p.subcategory === subCat);
+      } else {
+        filtered = filtered.filter((p: any) => p.category === filterCategory);
+      }
     }
 
     const expanded: any[] = [];
@@ -502,6 +514,24 @@ export default function InventoryManagement() {
     const cats = new Set(inventory.map((p: any) => p.category).filter(Boolean));
     return Array.from(cats);
   }, [inventory]);
+
+  const categoryFilterLabel = useMemo(() => {
+    if (filterCategory === "all") return "All Categories";
+    if (filterCategory.includes("::")) {
+      const [, sub] = filterCategory.split("::");
+      return sub;
+    }
+    return filterCategory;
+  }, [filterCategory]);
+
+  const toggleMainCat = (name: string) => {
+    setExpandedMainCats(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
 
   const totalProducts = inventory?.length || 0;
   const lowStockProducts = inventory?.filter((p: any) => (p.stockQuantity || 0) < 10 && (p.stockQuantity || 0) > 0 && p.inStock) || [];
@@ -601,6 +631,102 @@ export default function InventoryManagement() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            {/* ── Category Tree Dropdown (leftmost) ── */}
+            <div>
+              <Label data-testid="label-filter-category">Category</Label>
+              <Popover open={categoryDropdownOpen} onOpenChange={setCategoryDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    data-testid="button-category-filter"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <span className={filterCategory === "all" ? "text-muted-foreground" : "font-medium text-foreground"}>
+                      {categoryFilterLabel}
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0" align="start" data-testid="popover-category-filter">
+                  <div className="max-h-72 overflow-y-auto py-1">
+
+                    {/* All Categories */}
+                    <button
+                      type="button"
+                      onClick={() => { setFilterCategory("all"); setCategoryDropdownOpen(false); }}
+                      data-testid="option-category-all"
+                      className={`w-full flex items-center px-3 py-2 text-sm transition-colors hover:bg-accent
+                        ${filterCategory === "all" ? "bg-pink-50 text-pink-600 font-semibold dark:bg-pink-950/30 dark:text-pink-400" : "text-foreground"}`}
+                    >
+                      All Categories
+                    </button>
+
+                    <div className="h-px bg-border mx-2 my-1" />
+
+                    {/* Main categories with subcategories */}
+                    {(categoryTree || []).map((cat: any) => {
+                      const hasSubCats = cat.subCategories && cat.subCategories.length > 0;
+                      const isExpanded = expandedMainCats.has(cat.name);
+                      const isMainSelected = filterCategory === cat.name;
+
+                      return (
+                        <div key={cat._id}>
+                          {/* Main category row */}
+                          <div className="flex items-center">
+                            <button
+                              type="button"
+                              onClick={() => { setFilterCategory(cat.name); setCategoryDropdownOpen(false); }}
+                              data-testid={`option-category-${cat.name.toLowerCase().replace(/\s+/g, '-')}`}
+                              className={`flex-1 flex items-center px-3 py-2 text-sm font-medium transition-colors hover:bg-accent
+                                ${isMainSelected ? "text-pink-600 dark:text-pink-400" : "text-foreground"}`}
+                            >
+                              {cat.name}
+                            </button>
+                            {hasSubCats && (
+                              <button
+                                type="button"
+                                onClick={() => toggleMainCat(cat.name)}
+                                data-testid={`button-expand-${cat.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                className="pr-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                <ChevronRight
+                                  className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+                                />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Subcategories */}
+                          {hasSubCats && isExpanded && (
+                            <div className="ml-4 border-l border-border pl-2 pb-1">
+                              {cat.subCategories.map((sub: any) => {
+                                const subVal = `${cat.name}::${sub.name}`;
+                                const isSubSelected = filterCategory === subVal;
+                                return (
+                                  <button
+                                    key={sub.slug}
+                                    type="button"
+                                    onClick={() => { setFilterCategory(subVal); setCategoryDropdownOpen(false); }}
+                                    data-testid={`option-subcategory-${sub.slug}`}
+                                    className={`w-full text-left px-2 py-1.5 text-sm rounded transition-colors hover:bg-accent
+                                      ${isSubSelected ? "text-pink-600 font-medium dark:text-pink-400" : "text-muted-foreground hover:text-foreground"}`}
+                                  >
+                                    {sub.name}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* ── Search (spans 2 cols) ── */}
             <div className="md:col-span-2">
               <Label htmlFor="search" data-testid="label-search">Search Products</Label>
               <div className="relative">
@@ -616,6 +742,7 @@ export default function InventoryManagement() {
               </div>
             </div>
 
+            {/* ── Sort By ── */}
             <div>
               <Label htmlFor="sort" data-testid="label-sort">Sort By</Label>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -632,22 +759,6 @@ export default function InventoryManagement() {
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="filterCategory" data-testid="label-filter-category">Category</Label>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger id="filterCategory" data-testid="select-filter-category">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" data-testid="option-category-all">All Categories</SelectItem>
-                  {categories.map((cat: string) => (
-                    <SelectItem key={cat} value={cat} data-testid={`option-category-${cat.toLowerCase().replace(/\s+/g, '-')}`}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="mt-4 flex gap-4 flex-wrap">
