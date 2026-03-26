@@ -43,6 +43,55 @@ const CATEGORY_ICONS: Record<string, string> = {
   JEWELLERY: "💍",
 };
 
+interface CategoryFieldConfig {
+  showFabric: boolean;
+  showOccasion: boolean;
+  showPattern: boolean;
+  showWorkType: boolean;
+  workTypeLabel: string;
+  showSareeLength: boolean;
+  showBlousePiece: boolean;
+}
+
+const CATEGORY_FIELD_CONFIG: Record<string, CategoryFieldConfig> = {
+  SAREES: {
+    showFabric: true,
+    showOccasion: true,
+    showPattern: true,
+    showWorkType: true,
+    workTypeLabel: "Work Type",
+    showSareeLength: true,
+    showBlousePiece: true,
+  },
+  BLOUSES: {
+    showFabric: true,
+    showOccasion: true,
+    showPattern: true,
+    showWorkType: true,
+    workTypeLabel: "Work Type",
+    showSareeLength: false,
+    showBlousePiece: false,
+  },
+  "DRESS MATERIALS": {
+    showFabric: true,
+    showOccasion: true,
+    showPattern: true,
+    showWorkType: true,
+    workTypeLabel: "Work Type",
+    showSareeLength: false,
+    showBlousePiece: false,
+  },
+  JEWELLERY: {
+    showFabric: false,
+    showOccasion: true,
+    showPattern: false,
+    showWorkType: true,
+    workTypeLabel: "Jewellery Type",
+    showSareeLength: false,
+    showBlousePiece: false,
+  },
+};
+
 export default function ProductManagement() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -174,9 +223,24 @@ export default function ProductManagement() {
 
   const [selectedMainCategory, setSelectedMainCategory] = useState<MainCategory | null>(null);
 
+  const fieldConfig: CategoryFieldConfig | null = selectedMainCategory
+    ? (CATEGORY_FIELD_CONFIG[selectedMainCategory.name] ?? null)
+    : null;
+
   const handleMainCategorySelect = (cat: MainCategory) => {
     setSelectedMainCategory(cat);
-    setProductForm(prev => ({ ...prev, category: cat.name, subcategory: "" }));
+    const cfg = CATEGORY_FIELD_CONFIG[cat.name];
+    setProductForm(prev => ({
+      ...prev,
+      category: cat.name,
+      subcategory: "",
+      fabric: cfg?.showFabric ? prev.fabric : "",
+      occasion: cfg?.showOccasion ? prev.occasion : "",
+      pattern: cfg?.showPattern ? prev.pattern : "",
+      workType: cfg?.showWorkType ? prev.workType : "",
+      sareeLength: cfg?.showSareeLength ? prev.sareeLength : "",
+      blousePiece: cfg?.showBlousePiece ? prev.blousePiece : false,
+    }));
   };
 
   const resetForm = () => {
@@ -444,68 +508,82 @@ export default function ProductManagement() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fabric" data-testid="label-fabric">Fabric</Label>
-                  <Input
-                    id="fabric"
-                    value={productForm.fabric}
-                    onChange={(e) => setProductForm({...productForm, fabric: e.target.value})}
-                    data-testid="input-fabric"
-                  />
-                </div>
+              {fieldConfig && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {fieldConfig.showFabric && (
+                    <div className="space-y-2">
+                      <Label htmlFor="fabric" data-testid="label-fabric">Fabric</Label>
+                      <Input
+                        id="fabric"
+                        value={productForm.fabric}
+                        onChange={(e) => setProductForm({...productForm, fabric: e.target.value})}
+                        data-testid="input-fabric"
+                      />
+                    </div>
+                  )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="occasion" data-testid="label-occasion">Occasion</Label>
-                  <Input
-                    id="occasion"
-                    value={productForm.occasion}
-                    onChange={(e) => setProductForm({...productForm, occasion: e.target.value})}
-                    data-testid="input-occasion"
-                  />
-                </div>
+                  {fieldConfig.showOccasion && (
+                    <div className="space-y-2">
+                      <Label htmlFor="occasion" data-testid="label-occasion">Occasion</Label>
+                      <Input
+                        id="occasion"
+                        value={productForm.occasion}
+                        onChange={(e) => setProductForm({...productForm, occasion: e.target.value})}
+                        data-testid="input-occasion"
+                      />
+                    </div>
+                  )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="pattern" data-testid="label-pattern">Pattern</Label>
-                  <Input
-                    id="pattern"
-                    value={productForm.pattern}
-                    onChange={(e) => setProductForm({...productForm, pattern: e.target.value})}
-                    data-testid="input-pattern"
-                  />
-                </div>
+                  {fieldConfig.showPattern && (
+                    <div className="space-y-2">
+                      <Label htmlFor="pattern" data-testid="label-pattern">Pattern</Label>
+                      <Input
+                        id="pattern"
+                        value={productForm.pattern}
+                        onChange={(e) => setProductForm({...productForm, pattern: e.target.value})}
+                        data-testid="input-pattern"
+                      />
+                    </div>
+                  )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="workType" data-testid="label-work-type">Work Type</Label>
-                  <Input
-                    id="workType"
-                    value={productForm.workType}
-                    onChange={(e) => setProductForm({...productForm, workType: e.target.value})}
-                    data-testid="input-work-type"
-                  />
-                </div>
+                  {fieldConfig.showWorkType && (
+                    <div className="space-y-2">
+                      <Label htmlFor="workType" data-testid="label-work-type">{fieldConfig.workTypeLabel}</Label>
+                      <Input
+                        id="workType"
+                        value={productForm.workType}
+                        onChange={(e) => setProductForm({...productForm, workType: e.target.value})}
+                        data-testid="input-work-type"
+                      />
+                    </div>
+                  )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="sareeLength" data-testid="label-saree-length">Saree Length</Label>
-                  <Input
-                    id="sareeLength"
-                    value={productForm.sareeLength}
-                    onChange={(e) => setProductForm({...productForm, sareeLength: e.target.value})}
-                    data-testid="input-saree-length"
-                  />
+                  {fieldConfig.showSareeLength && (
+                    <div className="space-y-2">
+                      <Label htmlFor="sareeLength" data-testid="label-saree-length">Saree Length</Label>
+                      <Input
+                        id="sareeLength"
+                        value={productForm.sareeLength}
+                        onChange={(e) => setProductForm({...productForm, sareeLength: e.target.value})}
+                        data-testid="input-saree-length"
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               <div className="flex gap-6 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="blousePiece"
-                    checked={productForm.blousePiece}
-                    onCheckedChange={(checked) => setProductForm({...productForm, blousePiece: checked as boolean})}
-                    data-testid="checkbox-blouse-piece"
-                  />
-                  <Label htmlFor="blousePiece" data-testid="label-blouse-piece">Blouse Piece</Label>
-                </div>
+                {fieldConfig?.showBlousePiece && (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="blousePiece"
+                      checked={productForm.blousePiece}
+                      onCheckedChange={(checked) => setProductForm({...productForm, blousePiece: checked as boolean})}
+                      data-testid="checkbox-blouse-piece"
+                    />
+                    <Label htmlFor="blousePiece" data-testid="label-blouse-piece">Blouse Piece</Label>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2">
                   <Checkbox
