@@ -148,14 +148,12 @@ export default function Products() {
     queryParams.append("order", order);
   }
 
-  // If a mainCategory is selected (without specific subcategories), filter by all its subcategories
-  // Otherwise use the explicitly selected subcategories
-  const effectiveCategories = selectedCategories.length > 0
-    ? selectedCategories
-    : mainCategorySubcategoryNames;
-
-  if (effectiveCategories.length > 0) {
-    queryParams.append("category", effectiveCategories.join(","));
+  // If a parent category is selected (no specific subcategory chosen), pass mainCategory to backend
+  // which handles matching both new-style (category=SAREES) and legacy products
+  if (mainCategoryParam && selectedCategories.length === 0) {
+    queryParams.append("mainCategory", mainCategoryParam);
+  } else if (selectedCategories.length > 0) {
+    queryParams.append("category", selectedCategories.join(","));
   }
   if (selectedFabrics.length > 0) {
     queryParams.append("fabric", selectedFabrics.join(","));
@@ -190,8 +188,10 @@ export default function Products() {
 
   // Build price range query params (without page/limit/price)
   const priceRangeParams = new URLSearchParams();
-  if (effectiveCategories.length > 0) {
-    priceRangeParams.append("category", effectiveCategories.join(","));
+  if (mainCategoryParam && selectedCategories.length === 0) {
+    priceRangeParams.append("mainCategory", mainCategoryParam);
+  } else if (selectedCategories.length > 0) {
+    priceRangeParams.append("category", selectedCategories.join(","));
   }
   if (selectedFabrics.length > 0) {
     priceRangeParams.append("fabric", selectedFabrics.join(","));

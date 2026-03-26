@@ -231,6 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const {
         category,
+        mainCategory,
         fabric,
         color,
         occasion,
@@ -247,10 +248,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const query: any = {};
 
-      // Handle multi-select filters (comma-separated values)
-      if (category) {
+      // mainCategory: filter by parent category, matching both new (category=SAREES) and legacy (category=subcategory name) products
+      if (mainCategory) {
+        const mainCatName = (mainCategory as string).trim();
+        // Find the parent category document to get all subcategory names
+        const catDoc = await Category.findOne({ name: { $regex: new RegExp(`^${mainCatName}$`, 'i') } });
+        const subNames = catDoc?.subCategories?.map((s: any) => s.name) || [];
+        // Match: products whose category = main category name OR whose category = one of its subcategory names (legacy data)
+        const orConditions: any[] = [{ category: catDoc?.name || mainCatName }];
+        if (subNames.length > 0) {
+          orConditions.push({ category: { $in: subNames } });
+        }
+        query.$or = orConditions;
+      }
+      // Handle multi-select category filters (comma-separated values) — only when no mainCategory
+      // Uses $or to match both: legacy products (subcategory stored in category field) and
+      // new products (main category in category field, subcategory in subcategory field)
+      else if (category) {
         const categories = (category as string).split(',').filter(Boolean);
-        query.category = categories.length > 1 ? { $in: categories } : categories[0];
+        const catValues = categories.length > 1 ? categories : categories[0];
+        query.$or = [
+          { category: typeof catValues === 'string' ? catValues : { $in: catValues } },
+          { subcategory: typeof catValues === 'string' ? catValues : { $in: catValues } },
+        ];
       }
       if (fabric) {
         const fabrics = (fabric as string).split(',').filter(Boolean);
@@ -1767,6 +1787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const {
         category,
+        mainCategory,
         fabric,
         color,
         occasion,
@@ -1777,8 +1798,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const query: any = {};
 
-      // Apply the same filters as the products endpoint
-      if (category) {
+      // mainCategory: match by parent category name OR subcategory names (same logic as /api/products)
+      if (mainCategory) {
+        const mainCatName = (mainCategory as string).trim();
+        const catDoc = await Category.findOne({ name: { $regex: new RegExp(`^${mainCatName}$`, 'i') } });
+        const subNames = catDoc?.subCategories?.map((s: any) => s.name) || [];
+        const orConditions: any[] = [{ category: catDoc?.name || mainCatName }];
+        if (subNames.length > 0) orConditions.push({ category: { $in: subNames } });
+        query.$or = orConditions;
+      } else if (category) {
         const categories = (category as string).split(',').filter(Boolean);
         query.category = categories.length > 1 ? { $in: categories } : categories[0];
       }
