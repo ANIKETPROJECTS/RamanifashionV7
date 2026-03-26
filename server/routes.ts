@@ -169,6 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         subs.push({ name, slug, image: imageUrl, subCategories: [] });
         category.subCategories = subs;
+        category.markModified('subCategories');
         category.updatedAt = new Date();
         await category.save();
         res.json({ success: true, category });
@@ -200,6 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           subs[idx].image = await uploadToCloudinary(req.file.buffer, req.file.originalname);
         }
         category.subCategories = subs;
+        category.markModified('subCategories');
         category.updatedAt = new Date();
         await category.save();
         res.json({ success: true, category });
@@ -218,6 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filtered = subs.filter((s: any) => s.slug !== req.params.subSlug);
       if (filtered.length === subs.length) return res.status(404).json({ error: "Subcategory not found" });
       category.subCategories = filtered;
+      category.markModified('subCategories');
       category.updatedAt = new Date();
       await category.save();
       res.json({ success: true, category });
