@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ColorVariantEditor, ColorVariant } from "@/components/ColorVariantEditor";
+import { JewelleryImagesEditor, JewelleryImagesState } from "@/components/JewelleryImagesEditor";
 import { 
   Download,
   FileUp,
@@ -99,6 +100,14 @@ export default function ProductManagement() {
   const excelImportRef = useRef<HTMLInputElement>(null);
 
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([]);
+
+  const defaultJewelleryData: JewelleryImagesState = {
+    images: ["", "", "", "", ""],
+    stockQuantity: 0,
+    inStock: true,
+    isUploading: [false, false, false, false, false],
+  };
+  const [jewelleryData, setJewelleryData] = useState<JewelleryImagesState>(defaultJewelleryData);
 
   const { data: mainCategories = [] } = useQuery<MainCategory[]>({
     queryKey: ["/api/categories"],
@@ -276,6 +285,7 @@ export default function ProductManagement() {
       setIncludes: "",
     });
     setColorVariants([]);
+    setJewelleryData(defaultJewelleryData);
     setSelectedMainCategory(null);
   };
 
@@ -291,32 +301,62 @@ export default function ProductManagement() {
       return;
     }
     
-    if (colorVariants.length === 0) {
-      toast({ 
-        title: "At least one color variant required", 
-        description: "Please add at least one color with images",
-        variant: "destructive" 
-      });
-      return;
+    const isJewellery = productForm.category === "JEWELLERY";
+
+    if (isJewellery) {
+      const validImages = jewelleryData.images.filter(img => img.trim() !== "");
+      if (validImages.length === 0) {
+        toast({
+          title: "At least one image required",
+          description: "Please upload at least one product image",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      if (colorVariants.length === 0) {
+        toast({ 
+          title: "At least one color variant required", 
+          description: "Please add at least one color with images",
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      const hasImages = colorVariants.some(variant => variant.images && variant.images.length > 0);
+      if ((productForm.isNew || productForm.isTrending) && !hasImages) {
+        toast({
+          title: "Images required for New/Trending products",
+          description: "Please add at least one image before marking a product as New Arrival or Trending",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
-    const hasImages = colorVariants.some(variant => variant.images && variant.images.length > 0);
-    
-    if ((productForm.isNew || productForm.isTrending) && !hasImages) {
-      toast({
-        title: "Images required for New/Trending products",
-        description: "Please add at least one image before marking a product as New Arrival or Trending",
-        variant: "destructive"
-      });
-      return;
-    }
+    let finalColorVariants: ColorVariant[];
+    let totalStock: number;
+    let anyInStock: boolean;
 
-    const totalStock = colorVariants.reduce((sum, variant) => sum + (variant.stockQuantity ?? 0), 0);
-    const anyInStock = colorVariants.some(variant => {
-      const stock = variant.stockQuantity ?? 0;
-      const isInStock = variant.inStock ?? true;
-      return isInStock && stock > 0;
-    });
+    if (isJewellery) {
+      const validImages = jewelleryData.images.filter(img => img.trim() !== "");
+      finalColorVariants = [{
+        color: "Default",
+        images: validImages,
+        stockQuantity: jewelleryData.stockQuantity,
+        inStock: jewelleryData.stockQuantity > 0 ? jewelleryData.inStock : false,
+      }];
+      totalStock = jewelleryData.stockQuantity;
+      anyInStock = jewelleryData.stockQuantity > 0 ? jewelleryData.inStock : false;
+    } else {
+      finalColorVariants = colorVariants;
+      totalStock = colorVariants.reduce((sum, variant) => sum + (variant.stockQuantity ?? 0), 0);
+      anyInStock = colorVariants.some(variant => {
+        const stock = variant.stockQuantity ?? 0;
+        const isInStock = variant.inStock ?? true;
+        return isInStock && stock > 0;
+      });
+    }
 
     const formattedData = {
       name: productForm.name,
@@ -326,7 +366,7 @@ export default function ProductManagement() {
       category: productForm.category,
       subcategory: productForm.subcategory || undefined,
       fabric: productForm.fabric || undefined,
-      colorVariants: colorVariants,
+      colorVariants: finalColorVariants,
       occasion: productForm.occasion || undefined,
       pattern: productForm.pattern || undefined,
       workType: productForm.workType || undefined,
@@ -404,16 +444,10 @@ export default function ProductManagement() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <ColorVariantEditor
-                variants={colorVariants}
-                onChange={setColorVariants}
-                availableColors={AVAILABLE_COLORS}
-                adminToken={adminToken}
-              />
 
-              {/* Step 1: Main Category Selection */}
+              {/* ── Step 1: Main Category Selection (always visible) ── */}
               <div className="space-y-3">
-                <Label data-testid="label-main-category">Main Category *</Label>
+                <Label data-testid="label-main-category">Select Category *</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {mainCategories.map((cat) => {
                     const isSelected = selectedMainCategory?._id === cat._id;
@@ -444,48 +478,77 @@ export default function ProductManagement() {
                 </div>
               </div>
 
-              {/* Step 2: Subcategory Selection */}
-              {selectedMainCategory && selectedMainCategory.subCategories.length > 0 && (
-                <div className="space-y-3">
-                  <Label data-testid="label-subcategory">Subcategory <span className="text-gray-400 font-normal">(optional)</span></Label>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedMainCategory.subCategories.map((sub) => {
-                      const isSelected = productForm.subcategory === sub.name;
-                      return (
-                        <button
-                          key={sub.slug}
-                          type="button"
-                          onClick={() => setProductForm(prev => ({
-                            ...prev,
-                            subcategory: isSelected ? "" : sub.name
-                          }))}
-                          data-testid={`button-subcategory-${sub.slug}`}
-                          className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all
-                            ${isSelected
-                              ? "border-pink-500 bg-pink-500 text-white shadow"
-                              : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-pink-400 hover:text-pink-600"
-                            }`}
-                        >
-                          {sub.name}
-                        </button>
-                      );
-                    })}
-                  </div>
+              {/* ── Placeholder until category picked ── */}
+              {!selectedMainCategory && (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
+                  <span className="text-4xl mb-3">☝️</span>
+                  <p className="font-medium">Select a category above to continue</p>
+                  <p className="text-sm mt-1">The form will appear once you choose a category.</p>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" data-testid="label-product-name">Product Name *</Label>
-                  <Input
-                    id="name"
-                    value={productForm.name}
-                    onChange={(e) => setProductForm({...productForm, name: e.target.value})}
-                    required
-                    data-testid="input-product-name"
-                  />
-                </div>
-              </div>
+              {/* ── Everything below only shows after category is selected ── */}
+              {selectedMainCategory && (
+                <>
+                  {/* Step 2: Subcategory Selection */}
+                  {selectedMainCategory.subCategories.length > 0 && (
+                    <div className="space-y-3">
+                      <Label data-testid="label-subcategory">Subcategory <span className="text-gray-400 font-normal">(optional)</span></Label>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMainCategory.subCategories.map((sub) => {
+                          const isSelected = productForm.subcategory === sub.name;
+                          return (
+                            <button
+                              key={sub.slug}
+                              type="button"
+                              onClick={() => setProductForm(prev => ({
+                                ...prev,
+                                subcategory: isSelected ? "" : sub.name
+                              }))}
+                              data-testid={`button-subcategory-${sub.slug}`}
+                              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all
+                                ${isSelected
+                                  ? "border-pink-500 bg-pink-500 text-white shadow"
+                                  : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-pink-400 hover:text-pink-600"
+                                }`}
+                            >
+                              {sub.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Images & Color (category-dependent) */}
+                  {productForm.category === "JEWELLERY" ? (
+                    <JewelleryImagesEditor
+                      value={jewelleryData}
+                      onChange={setJewelleryData}
+                      adminToken={adminToken}
+                    />
+                  ) : (
+                    <ColorVariantEditor
+                      variants={colorVariants}
+                      onChange={setColorVariants}
+                      availableColors={AVAILABLE_COLORS}
+                      adminToken={adminToken}
+                    />
+                  )}
+
+                  {/* Product Name */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" data-testid="label-product-name">Product Name *</Label>
+                      <Input
+                        id="name"
+                        value={productForm.name}
+                        onChange={(e) => setProductForm({...productForm, name: e.target.value})}
+                        required
+                        data-testid="input-product-name"
+                      />
+                    </div>
+                  </div>
 
               <div className="space-y-2">
                 <Label htmlFor="description" data-testid="label-description">Description</Label>
@@ -777,14 +840,16 @@ export default function ProductManagement() {
                 </div>
               ) : null}
 
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={resetForm} data-testid="button-reset">
-                  Reset Form
-                </Button>
-                <Button type="submit" disabled={addProductMutation.isPending} data-testid="button-submit">
-                  {addProductMutation.isPending ? "Adding Product..." : "Add Product"}
-                </Button>
-              </div>
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={resetForm} data-testid="button-reset">
+                      Reset Form
+                    </Button>
+                    <Button type="submit" disabled={addProductMutation.isPending} data-testid="button-submit">
+                      {addProductMutation.isPending ? "Adding Product..." : "Add Product"}
+                    </Button>
+                  </div>
+                </>
+              )}
             </form>
           </CardContent>
         </Card>
