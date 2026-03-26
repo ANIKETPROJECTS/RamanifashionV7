@@ -438,10 +438,8 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                                 className={`flex items-center justify-between px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors whitespace-nowrap ${hoveredMainCategory === cat.label ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-pink-50 hover:text-pink-600"}`}
                                 onMouseEnter={() => setHoveredMainCategory(cat.label)}
                                 onClick={() => {
-                                  if (cat.subCategories.length === 0) {
-                                    setHoveredMainCategory(null);
-                                    setLocation(`/products?${cat.param}`);
-                                  }
+                                  setHoveredMainCategory(null);
+                                  setLocation(`/products?${cat.param}`);
                                 }}
                                 data-testid={`category-main-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
                               >
@@ -749,10 +747,21 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onMenuClick }
                           open={openMobileSubCategory === cat.label}
                           onOpenChange={(open) => setOpenMobileSubCategory(open ? cat.label : null)}
                         >
-                          <CollapsibleTrigger className="flex items-center justify-between w-full py-2.5 px-4 rounded-md text-sm font-medium hover-elevate transition-colors text-muted-foreground hover:text-foreground">
-                            <span>{cat.label}</span>
-                            <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${openMobileSubCategory === cat.label ? "rotate-90" : ""}`} />
-                          </CollapsibleTrigger>
+                          <div className="flex items-center w-full rounded-md text-sm font-medium hover-elevate transition-colors text-muted-foreground hover:text-foreground">
+                            <Link
+                              href={`/products?${cat.param}`}
+                              className="flex-1 py-2.5 px-4 text-left"
+                              onClick={() => setMobileMenuOpen(false)}
+                              data-testid={`mobile-category-main-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                            >
+                              {cat.label}
+                            </Link>
+                            <CollapsibleTrigger asChild>
+                              <button className="py-2.5 px-3">
+                                <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${openMobileSubCategory === cat.label ? "rotate-90" : ""}`} />
+                              </button>
+                            </CollapsibleTrigger>
+                          </div>
                           <CollapsibleContent>
                             <div className="flex flex-col gap-0.5 pl-4 pr-2 pb-1">
                               {cat.subCategories.map((sub) => (
