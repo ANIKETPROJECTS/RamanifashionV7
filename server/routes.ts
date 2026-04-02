@@ -11,7 +11,8 @@ import fs from "fs";
 import XLSX from "xlsx";
 import { upload, mediaUpload } from "./upload-config";
 import { uploadToCloudinary } from "./cloudinary-service";
-import { sendWhatsAppOTP, generateOTP, sendOrderConfirmation } from "./whatsapp-service";
+import { sendSMSOTP, generateOTP } from "./sms-service";
+import { sendOrderConfirmation } from "./whatsapp-service";
 import { phonePeService } from "./phonepe-service";
 import { shiprocketService } from "./shiprocket.service";
 
@@ -819,23 +820,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await otp.save();
 
-      // Send OTP via WhatsApp
+      // Send OTP via SMS
       try {
-        await sendWhatsAppOTP({
-          phoneNumber: phone,
-          otp: otpCode
-        });
+        await sendSMSOTP(phone, otpCode);
 
         res.json({ 
-          message: 'OTP sent successfully to WhatsApp'
+          message: 'OTP sent successfully via SMS'
         });
-      } catch (whatsappError: any) {
-        console.error('WhatsApp sending failed:', whatsappError);
+      } catch (smsError: any) {
+        console.error('SMS sending failed:', smsError);
         // Delete the saved OTP since sending failed
         await OTP.deleteOne({ _id: otp._id });
         
         return res.status(500).json({ 
-          error: 'Failed to send OTP via WhatsApp. Please try again.' 
+          error: 'Failed to send OTP via SMS. Please try again.' 
         });
       }
     } catch (error: any) {
